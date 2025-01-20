@@ -1,0 +1,12 @@
+name,email,password,role,imgPath
+admin,admin@gmail.com,11112222,admin,user_20250113113052_128.jpg
+sengkea,sengkea@gmail.com,kea12345,visitor,IdeaProjects/libraryProject/src/images/profiles/user_20250113103708_216.jpg
+java,java@gmail.com,11111111,visitor,user_20250116140740_883.png
+codi,codi@gmail.com,11111122,visitor,user_20250116143825_145.png
+lokru,lokru@gmail.com,11112222,visitor,user_20250116163042_619.png
+panda,panda@gmail.com,111111111111,visitor,user_20250117105148_983.png
+Hello,haaaaaa@gmail.com,1111111111111,visitor,user_20250117105220_143.png
+master,bro@gmail.com,111111222222,visitor,user_20250117105240_530.png
+masterbro,love@gmail.com,111112222333,visitor,user_20250117105312_692.png
+AmI,iamstudent@gmail.com,22222233333,visitor,user_20250117105337_998.png
+hehe,hehe@gmail.com,1112222333,visitor,user_20250117105417_478.png
