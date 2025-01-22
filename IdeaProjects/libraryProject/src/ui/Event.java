@@ -2,17 +2,17 @@ package ui;
 
 import javax.swing.*;
 
-public class Event extends JFrame {
-    Event(){
-        this.setSize(400,500);
-        this.setDefaultCloseOperation(EXIT_ON_CLOSE);
-
-        JButton button =new JButton("Hello");
-        this.add(button);
-        this.setVisible(true);
+public class Event{
+    int n;
+    public Event(int a){
+        n=a;
+    }
+    public void print(){
+        System.out.println(n);
     }
 
     public static void main(String[] args) {
-        new  Event();
+        Event event =new Event(55);
+        event.print();
     }
 }

@@ -30,9 +30,14 @@ public class BookService {
         loadBooks(); // Load books from CSV file when the service is initialized
     }
 
-    /**
-     * Load books from the CSV file into memory.
-     */
+    public Map<String, Integer> getGenreCounts() {
+        Map<String, Integer> genreCounts = new HashMap<>();
+        for (Book book : bookList) {
+            String genre = book.getGenre();
+            genreCounts.put(genre, genreCounts.getOrDefault(genre, 0) + 1);
+        }
+        return genreCounts;
+    }
     private void loadBooks() {
         List<String[]> rows = CSVUtils.readCSV(BOOKS_CSV);
         for (String[] row : rows) {
@@ -134,6 +139,9 @@ public class BookService {
     }
     public int getTotalBooks(){
         return bookList.size();
+    }
+    public int getTotalBorrowedBook(){
+        return bookList.size()-getTotalAvailableBooks();
     }
 
     /**

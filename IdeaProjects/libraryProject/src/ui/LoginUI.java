@@ -171,7 +171,7 @@ public class LoginUI extends JFrame {
         return loginContainer;
     }
     private JPanel CreateRegistrationForm(){
-        ImageIcon imageIcon = new ImageIcon("src\\images\\thumbnails\\library.jpg");
+        ImageIcon imageIcon = new ImageIcon(getClass().getResource("/images/thumbnails/library.jpg"));
         Image scaledImage = imageIcon.getImage().getScaledInstance(600, 500, Image.SCALE_SMOOTH);
         ImageIcon scaledIcon = new ImageIcon(scaledImage);
         JLabel imgLabel = new JLabel(scaledIcon);
