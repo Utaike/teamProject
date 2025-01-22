@@ -181,7 +181,7 @@ public class BookDetails extends JPanel implements TransactionListener {
                 borrowBook(book);
                 break;
             case "Read":
-                openPDF(book.getLink());
+                openPDFOrURL(book.getLink());
                 break;
             default:
                 JOptionPane.showMessageDialog(this, "Action not available.", "Error", JOptionPane.ERROR_MESSAGE);
@@ -193,12 +193,40 @@ public class BookDetails extends JPanel implements TransactionListener {
         BorrowBookUtil.borrowBook(book, user, transactionController, this, this);
     }
 
-    private void openPDF(String pdfPath) {
-        if (pdfPath == null || pdfPath.trim().isEmpty()) {
-            JOptionPane.showMessageDialog(this, "The PDF file path is empty or invalid.", "Error", JOptionPane.ERROR_MESSAGE);
+    private void openPDFOrURL(String path) {
+        if (path == null || path.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "The path is empty or invalid.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
+        // Check if the path is a URL
+        if (isValidURL(path)) {
+            openURL(path); // Open the URL in a browser or embedded viewer
+        } else {
+            openPDF(path); // Open the PDF file
+        }
+    }
+
+    private boolean isValidURL(String path) {
+        try {
+            // Use URI to validate the URL format
+            new java.net.URI(path);
+            return true;
+        } catch (Exception e) {
+            return false; // Not a valid URL
+        }
+    }
+
+    private void openURL(String url) {
+        try {
+            // Open the URL in the default browser
+            java.awt.Desktop.getDesktop().browse(new java.net.URI(url));
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error opening the URL: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void openPDF(String pdfPath) {
         try {
             PDFViewer pdfViewer = new PDFViewer(pdfPath, cardLayout, cardPanel);
             cardPanel.add(pdfViewer, "PDFViewer");

@@ -119,7 +119,8 @@ public class LoginUI extends JFrame {
                     User loggedInUser=userController.getUserByEmail(inputEmail);
                     if(loggedInUser.getRole().equals("admin")){
                         AdminController adminController =new AdminController();
-                        cardPanel.add(new AdminDashboard(userController.getUserByEmail(inputEmail), adminController, new TransactionController(),cardLayout,cardPanel),"AdminDashboard");
+                        setResizable(true);
+                        cardPanel.add(new AdminDashboard(userController.getUserByEmail(inputEmail), adminController, cardLayout,cardPanel),"AdminDashboard");
                         cardLayout.show(cardPanel,"AdminDashboard");
                     }else{
                         cardPanel.add(new UserDashboard(userController.getUserByEmail(inputEmail),cardLayout,cardPanel,new BookController()),"Dashboard");
@@ -169,7 +170,7 @@ public class LoginUI extends JFrame {
         return loginContainer;
     }
     private JPanel CreateRegistrationForm(){
-        ImageIcon imageIcon = new ImageIcon("src\\images\\thumbnails\\library.jpg");
+        ImageIcon imageIcon = new ImageIcon(getClass().getResource("/images/thumbnails/library.jpg"));
         Image scaledImage = imageIcon.getImage().getScaledInstance(600, 500, Image.SCALE_SMOOTH);
         ImageIcon scaledIcon = new ImageIcon(scaledImage);
         JLabel imgLabel = new JLabel(scaledIcon);
