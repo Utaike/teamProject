@@ -35,7 +35,7 @@ public class ViewTransactionHistory extends JPanel {
         setLayout(new BorderLayout());
 
         // Add the header to the top of the dashboard
-        add(new Header("Imagine Library", user.getName(), this::handleLogout), BorderLayout.NORTH);
+        add(new Header("Imagine Library", user, this::handleLogout), BorderLayout.NORTH);
 
         // Create the main content panel
         JPanel mainContent = new JPanel(new BorderLayout());

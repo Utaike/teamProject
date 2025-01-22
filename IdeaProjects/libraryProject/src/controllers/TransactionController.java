@@ -7,6 +7,7 @@ import models.User;
 import services.TransactionService;
 
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -20,24 +21,23 @@ public class TransactionController {
     }
 
     /**
-     * Borrow a book and notify the listener of the result.
+     * Create a pending borrowing request.
      *
      * @param book     The book to borrow.
      * @param user     The user borrowing the book.
      * @param listener The listener to notify of the result.
-     * @return True if the borrow request was initiated successfully, false otherwise.
+     * @return True if the request was created successfully, false otherwise.
      */
-    public boolean borrowBook(Book book, User user, TransactionListener listener) {
+    public boolean createBorrowingRequest(Book book, User user, TransactionListener listener) {
         if (book == null || user == null || !book.isAvailable()) {
             listener.onBorrowFailure("Invalid book or user, or the book is not available.");
             return false;
         }
 
-        // Attempt to borrow the book
-        boolean success = transactionService.borrowBook(user.getEmail(), book.getId());
+        // Create a pending transaction using TransactionService
+        boolean success = transactionService.createPendingRequest(user.getEmail(), book.getId());
         if (success) {
-            bookController.updateBookAvailability(book.getId(),false);
-            // Create a new transaction object
+            // Notify the listener of success
             Transaction transaction = new Transaction(
                     transactionService.generateId(),
                     user.getEmail(),
@@ -45,11 +45,65 @@ public class TransactionController {
                     LocalDate.now(),
                     LocalDate.now().plusWeeks(2), // 2 weeks lending period
                     null,
-                    true // isBorrow
+                    true, // isBorrow
+                    "PENDING" // Status
             );
-            listener.onBorrowSuccess(transaction); // Notify the listener of success
+            listener.onBorrowSuccess(transaction);
         } else {
-            listener.onBorrowFailure("Failed to borrow the book. Please try again."); // Notify the listener of failure
+            listener.onBorrowFailure("Failed to create borrowing request. Please try again."); // Notify the listener of failure
+        }
+
+        return success;
+    }
+
+    /**
+     * Approve a borrowing request and finalize the transaction.
+     *
+     * @param transactionId The ID of the transaction to approve.
+     * @param listener      The listener to notify of the result.
+     * @return True if the request was approved successfully, false otherwise.
+     */
+    public boolean approveBorrowingRequest(String transactionId, TransactionListener listener) {
+        // Approve the transaction using TransactionService
+        boolean success = transactionService.approveRequest(transactionId);
+        if (success) {
+            // Fetch the approved transaction
+            Transaction transaction = transactionService.getTransactionById(transactionId);
+            if (transaction != null) {
+                // Update book availability
+                bookController.updateBookAvailability(transaction.getBookId(), false);
+                listener.onBorrowSuccess(transaction); // Notify the listener of success
+            } else {
+                listener.onBorrowFailure("Failed to fetch approved transaction.");
+                return false;
+            }
+        } else {
+            listener.onBorrowFailure("Failed to approve borrowing request. Please try again."); // Notify the listener of failure
+        }
+
+        return success;
+    }
+
+    /**
+     * Reject a borrowing request.
+     *
+     * @param transactionId The ID of the transaction to reject.
+     * @param listener      The listener to notify of the result.
+     * @return True if the request was rejected successfully, false otherwise.
+     */
+    public boolean rejectBorrowingRequest(String transactionId, TransactionListener listener) {
+        // Reject the transaction using TransactionService
+        boolean success = transactionService.rejectRequest(transactionId);
+        if (success) {
+            // Fetch the rejected transaction
+            Transaction transaction = transactionService.getTransactionById(transactionId);
+            if (transaction != null) {
+                listener.onRejectSuccess(transaction); // Notify the listener of success
+            } else {
+                return false;
+            }
+        } else {
+            listener.onBorrowFailure("Failed to reject borrowing request. Please try again."); // Notify the listener of failure
         }
 
         return success;
@@ -69,12 +123,12 @@ public class TransactionController {
             return false;
         }
 
-        // Attempt to return the book
+        // Return the book using TransactionService
         boolean success = transactionService.returnBook(user.getEmail(), book.getId());
         if (success) {
             // Update book availability to true
             bookController.updateBookAvailability(book.getId(), true);
-            // Create a new transaction object
+            // Create a new transaction object for the return
             Transaction transaction = new Transaction(
                     transactionService.generateId(),
                     user.getEmail(),
@@ -82,7 +136,8 @@ public class TransactionController {
                     LocalDate.now(),
                     LocalDate.now().plusWeeks(2), // 2 weeks lending period
                     LocalDate.now(),
-                    false // isBorrow (false for return)
+                    false, // isBorrow (false for return)
+                    "COMPLETED" // Status
             );
             listener.onReturnSuccess(transaction); // Notify the listener of success
         } else {
@@ -100,7 +155,7 @@ public class TransactionController {
      */
     public List<Transaction> getActiveTransactionsByUser(String userEmail) {
         return transactionService.getTransactionsByUser(userEmail).stream()
-                .filter(transaction -> transaction.isBorrow() && transaction.getReturnDate() == null)
+                .filter(transaction -> transaction.isBorrowed() && transaction.getReturnDate() == null)
                 .collect(Collectors.toList());
     }
 
@@ -113,11 +168,39 @@ public class TransactionController {
     public List<Transaction> getTransactionsByUser(String userEmail) {
         return transactionService.getTransactionsByUser(userEmail);
     }
-    //get all borrowed transaction;
-    public List<Transaction> getAllActiveTransaction(){
+
+    /**
+     * Get all borrowed transactions.
+     *
+     * @return A list of all borrowed transactions.
+     */
+    public List<Transaction> getAllActiveTransactions() {
         return transactionService.getActiveTransactions();
     }
-    public String GenerateId(){
+
+    /*** Get all pending borrowing requests.
+     * @return A list of all pending transactions.*/
+    public List<Transaction> getPendingRequests() {
+        return transactionService.getPendingRequests();
+    }
+
+    /**Generate a unique transaction ID.
+     * @return A new unique ID.*/
+    public String generateId() {
         return transactionService.generateId();
+    }
+
+    public Transaction getTransactionById(String transactionId) {
+        return transactionService.getTransactionById(transactionId);
+    }
+
+    public List<Transaction> getReturnedBooksByUser(String email) {
+        return transactionService.getTransactionsByUser(email).stream()
+                .filter(transaction -> transaction.isReturned() == true)
+                .toList();
+    }
+
+    public List<Transaction> getReturnedBooks() {
+        return transactionService.getAllTransactions().stream().filter(transaction -> transaction.isReturned() == true).toList();
     }
 }

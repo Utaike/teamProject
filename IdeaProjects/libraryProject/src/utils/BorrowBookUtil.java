@@ -63,7 +63,7 @@ public class BorrowBookUtil {
         addDetailLabel(detailsPanel, "User Email: " + user.getEmail(), Font.PLAIN, 16);
 
         // Preloaded transaction details
-        JLabel transactionIdLabel = addDetailLabel(detailsPanel, "Transaction ID: " + transactionController.GenerateId(), Font.PLAIN, 16);
+        JLabel transactionIdLabel = addDetailLabel(detailsPanel, "Transaction ID: " + transactionController.generateId(), Font.PLAIN, 16);
         JLabel borrowDateLabel = addDetailLabel(detailsPanel, "Borrow Date: " + LocalDate.now().toString(), Font.PLAIN, 16);
         JLabel dueDateLabel = addDetailLabel(detailsPanel, "Due Date: " + LocalDate.now().plusWeeks(2).toString(), Font.PLAIN, 16);
 
@@ -78,10 +78,10 @@ public class BorrowBookUtil {
         confirmButton.setPreferredSize(new Dimension(150, 50));
         confirmButton.addActionListener(_ -> {
             // Save the transaction only when the user confirms
-            boolean success = transactionController.borrowBook(book, user, listener);
+            boolean success = transactionController.createBorrowingRequest(book, user, listener);
 
             if (!success) {
-                showErrorDialog("Failed to borrow the book. Please try again.", parentComponent);
+                showErrorDialog("Failed to create a borrowing request. Please try again.", parentComponent);
             } else {
                 dialog.dispose(); // Close the dialog after successful borrow
             }

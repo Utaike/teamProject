@@ -42,7 +42,7 @@ public class BorrowBookFrame extends JPanel implements TransactionListener {
 
         setLayout(new BorderLayout());
         setBackground(new Color(240, 240, 240)); // Light gray background
-        add(new Header("Imagine Library", user.getName(), this::handleLogout), BorderLayout.NORTH);
+        add(new Header("Imagine Library", user, this::handleLogout), BorderLayout.NORTH);
 
         JPanel mainContent = new JPanel(new BorderLayout());
         mainContent.setBackground(new Color(240, 240, 240));
@@ -219,7 +219,7 @@ public class BorrowBookFrame extends JPanel implements TransactionListener {
     @Override
     public void onBorrowSuccess(Transaction transaction) {
         // Show success message
-        JOptionPane.showMessageDialog(this, "Book borrowed successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(this, "Borrowing request successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
 
         // Get the borrowed book
         Book borrowedBook = bookController.getBooksByID(transaction.getBookId());
@@ -238,19 +238,14 @@ public class BorrowBookFrame extends JPanel implements TransactionListener {
             bookCardMap.remove(borrowedBook);
         }
     }
-
     @Override
     public void onBorrowFailure(String errorMessage) {
         JOptionPane.showMessageDialog(this, errorMessage, "Error", JOptionPane.ERROR_MESSAGE);
     }
-
     @Override
-    public void onReturnSuccess(Transaction transaction) {
-        // Not used in BorrowBookFrame
-    }
-
+    public void onReturnSuccess(Transaction transaction) {}
     @Override
-    public void onReturnFailure(String errorMessage) {
-        // Not used in BorrowBookFrame
-    }
+    public void onReturnFailure(String errorMessage) {}
+    @Override
+    public void onRejectSuccess(Transaction transaction) {}
 }

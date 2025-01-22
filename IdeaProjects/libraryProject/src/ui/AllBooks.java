@@ -59,7 +59,7 @@ public class AllBooks extends JPanel implements TransactionListener {
         setLayout(new BorderLayout());
 
         // Header
-        add(new Header("Imagine Library", user.getName(), this::handleLogout), BorderLayout.NORTH);
+        add(new Header("Imagine Library", user, this::handleLogout), BorderLayout.NORTH);
 
         // Main Content
         JPanel mainContent = new JPanel(new BorderLayout());
@@ -175,7 +175,6 @@ public class AllBooks extends JPanel implements TransactionListener {
             JOptionPane.showMessageDialog(this, "This book is currently unavailable.", "Unavailable", JOptionPane.WARNING_MESSAGE);
             return;
         }
-
         switch (buttonText) {
             case "Borrow":
                 borrowBook(book);
@@ -249,22 +248,19 @@ public class AllBooks extends JPanel implements TransactionListener {
 
     @Override
     public void onBorrowSuccess(Transaction transaction) {
-        JOptionPane.showMessageDialog(this, "Book borrowed successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+        // Show success message
+        JOptionPane.showMessageDialog(this, "Borrowing request successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+        // Refresh the UI
         updateBookListPanel();
     }
-
     @Override
     public void onBorrowFailure(String errorMessage) {
         JOptionPane.showMessageDialog(this, errorMessage, "Error", JOptionPane.ERROR_MESSAGE);
     }
-
     @Override
-    public void onReturnSuccess(Transaction transaction) {
-        // Not used in AllBooks
-    }
-
+    public void onReturnSuccess(Transaction transaction) {}
     @Override
-    public void onReturnFailure(String errorMessage) {
-        // Not used in AllBooks
-    }
+    public void onReturnFailure(String errorMessage) {}
+    @Override
+    public void onRejectSuccess(Transaction transaction) {}
 }

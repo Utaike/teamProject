@@ -1,16 +1,14 @@
 package ui;
 
-import controllers.AdminController;
-import controllers.MenuController;
+import controllers.*;
 import utils.createStyledButton;
-import controllers.BookController;
 import models.Admin;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
-import controllers.UserController;
+
 import models.User;
 import static utils.PlaceHolder.addPasswordPlaceholder;
 import static utils.PlaceHolder.addPlaceholder;
@@ -121,7 +119,7 @@ public class LoginUI extends JFrame {
                     User loggedInUser=userController.getUserByEmail(inputEmail);
                     if(loggedInUser.getRole().equals("admin")){
                         AdminController adminController =new AdminController();
-                        cardPanel.add(new AdminDashboard(userController.getUserByEmail(inputEmail), adminController,cardLayout,cardPanel),"AdminDashboard");
+                        cardPanel.add(new AdminDashboard(userController.getUserByEmail(inputEmail), adminController, new TransactionController(),cardLayout,cardPanel),"AdminDashboard");
                         cardLayout.show(cardPanel,"AdminDashboard");
                     }else{
                         cardPanel.add(new UserDashboard(userController.getUserByEmail(inputEmail),cardLayout,cardPanel,new BookController()),"Dashboard");

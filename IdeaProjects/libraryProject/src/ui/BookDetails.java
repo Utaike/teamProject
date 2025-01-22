@@ -45,7 +45,7 @@ public class BookDetails extends JPanel implements TransactionListener {
 
     private void initializeUI() {
         setLayout(new BorderLayout());
-        add(new Header("Imagine Library", user.getName(), this::handleLogout), BorderLayout.NORTH);
+        add(new Header("Imagine Library", user, this::handleLogout), BorderLayout.NORTH);
 
         JPanel mainContent = new JPanel(new BorderLayout());
         String[] menuItems = {"Home", "View profile", "Borrow Book", "Return Book", "Borrowed books", "Back to previous", "New Arrivals"};
@@ -149,16 +149,20 @@ public class BookDetails extends JPanel implements TransactionListener {
     }
 
     private String determineButtonText(Book book) {
-        if ("BorrowBookFrame".equals(frameType)) {
+        if (!book.isAvailable()) {
+            return "Unavailable"; // Show "Unavailable" if the book is not available
+        } else if ("BorrowBookFrame".equals(frameType)) {
             return "Borrow"; // Always show "Borrow" in the BorrowBookFrame
         } else if ("UserDashboard".equals(frameType)) {
-            return "Read"; // Show "Borrow" or "Read" in the UserDashboard
+            return "Read"; // Show "Read" in the UserDashboard
         }
         return ""; // Default text
     }
 
     private boolean determineButtonEnabled(Book book) {
-        if ("BorrowBookFrame".equals(frameType)) {
+        if (!book.isAvailable()) {
+            return false; // Disable the button if the book is unavailable
+        } else if ("BorrowBookFrame".equals(frameType)) {
             return book.isAvailable(); // Enable button only if the book is available in the BorrowBookFrame
         } else if ("UserDashboard".equals(frameType)) {
             return true; // Always enable the button in the UserDashboard
@@ -247,29 +251,20 @@ public class BookDetails extends JPanel implements TransactionListener {
     @Override
     public void onBorrowSuccess(Transaction transaction) {
         // Show success message
-        JOptionPane.showMessageDialog(this, "Book borrowed successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-
-        // Update the book's availability
-        book.setAvailable(false);
-
+        JOptionPane.showMessageDialog(this, "Borrowing request successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
         // Refresh the UI
         refreshUI();
     }
-
     @Override
     public void onBorrowFailure(String errorMessage) {
         JOptionPane.showMessageDialog(this, errorMessage, "Error", JOptionPane.ERROR_MESSAGE);
     }
-
     @Override
-    public void onReturnSuccess(Transaction transaction) {
-        // Not used in BookDetails
-    }
-
+    public void onReturnSuccess(Transaction transaction) {}
     @Override
-    public void onReturnFailure(String errorMessage) {
-        // Not used in BookDetails
-    }
+    public void onReturnFailure(String errorMessage) {}
+    @Override
+    public void onRejectSuccess(Transaction transaction) {}
 
     private void refreshUI() {
         // Update the action button

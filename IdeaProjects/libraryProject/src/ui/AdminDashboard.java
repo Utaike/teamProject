@@ -2,6 +2,7 @@ package ui;
 
 import controllers.AdminController;
 import controllers.AdminMenuController;
+import controllers.TransactionController;
 import models.Book;
 import models.User;
 import ui.components.Header;
@@ -20,6 +21,7 @@ public class AdminDashboard extends JPanel {
     private final CardLayout cardLayout;
     private final JPanel cardPanel;
     private final AdminMenuController adminMenuController;
+    private final TransactionController transactionController;
 
     // Constants for colors, fonts, and padding
     private static final Color CARD_BACKGROUND = new Color(230, 230, 250);
@@ -28,16 +30,17 @@ public class AdminDashboard extends JPanel {
     private static final Font VALUE_FONT = new Font("Arial", Font.PLAIN, 24);
     private static final int PADDING = 20;
 
-    public AdminDashboard(User user, AdminController adminController, CardLayout cardLayout, JPanel cardPanel) {
+    public AdminDashboard(User user, AdminController adminController, TransactionController transactionController, CardLayout cardLayout, JPanel cardPanel) {
         this.user = user;
         this.adminController = adminController;
         this.cardLayout = cardLayout;
         this.cardPanel = cardPanel;
         this.adminMenuController = new AdminMenuController(this.user, cardLayout, cardPanel);
+        this.transactionController = transactionController;
 
         setLayout(new BorderLayout());
 
-        add(new Header("Imagine Library", user.getName(), this::handleLogout), BorderLayout.NORTH);
+        add(new Header("Imagine Library", user, this::handleLogout), BorderLayout.NORTH);
 
         JPanel mainContent = new JPanel(new BorderLayout());
 

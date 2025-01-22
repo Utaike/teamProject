@@ -50,7 +50,7 @@ public class ReturnBook extends JPanel implements TransactionListener {
         setLayout(new BorderLayout()); // Use BorderLayout for the main panel
 
         // Add the header with the library name, user name, and logout handler
-        add(new Header("Imagine Library", user.getName(), this::handleLogout), BorderLayout.NORTH);
+        add(new Header("Imagine Library", user, this::handleLogout), BorderLayout.NORTH);
 
         // Create the main content panel
         JPanel mainContent = new JPanel(new BorderLayout());
@@ -324,19 +324,17 @@ public class ReturnBook extends JPanel implements TransactionListener {
      * @param transaction The transaction that was successfully returned.
      */
     @Override
-    public void onReturnSuccess(Transaction transaction) {
-        // This method is called by the TransactionController when a book is successfully returned
-    }
-
-    /**
-     * Handles the result of a failed return operation.
-     *
-     * @param errorMessage The error message for the failed return.
-     */
+    public void onBorrowSuccess(Transaction transaction) {}
+    @Override
+    public void onBorrowFailure(String errorMessage) {}
+    @Override
+    public void onReturnSuccess(Transaction transaction) {}
     @Override
     public void onReturnFailure(String errorMessage) {
         showErrorDialog(errorMessage); // Show the error message
     }
+    @Override
+    public void onRejectSuccess(Transaction transaction) {}
 
     /**
      * Retrieves the book title by book ID.
@@ -367,12 +365,6 @@ public class ReturnBook extends JPanel implements TransactionListener {
         transactionTable.revalidate(); // Refresh the table UI
         transactionTable.repaint();
     }
-
-    @Override
-    public void onBorrowSuccess(Transaction transaction) {}
-
-    @Override
-    public void onBorrowFailure(String errorMessage) {}
 }
 
 /**
