@@ -10,6 +10,8 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
+import java.time.LocalDate;
+
 import controllers.UserController;
 import models.User;
 import static utils.PlaceHolder.addPasswordPlaceholder;
@@ -123,6 +125,7 @@ public class LoginUI extends JFrame {
                         AdminController adminController =new AdminController();
                         cardPanel.add(new AdminDashboard(userController.getUserByEmail(inputEmail), adminController,cardLayout,cardPanel),"AdminDashboard");
                         cardLayout.show(cardPanel,"AdminDashboard");
+                        setResizable(true);
                     }else{
                         cardPanel.add(new UserDashboard(userController.getUserByEmail(inputEmail),cardLayout,cardPanel,new BookController()),"Dashboard");
                         cardLayout.show(cardPanel,"Dashboard");
@@ -278,7 +281,8 @@ public class LoginUI extends JFrame {
                     return;
                 }
                 // Handle registration logic
-                boolean registrationSuccess = userController.register(inputName, inputEmail, new String(inputPassword),uniqueName);
+
+                boolean registrationSuccess = userController.register(inputName, inputEmail, new String(inputPassword),uniqueName, LocalDate.now());
                 if (registrationSuccess) {
                     JOptionPane.showMessageDialog(
                             this,

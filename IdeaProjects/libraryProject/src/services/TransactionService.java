@@ -7,6 +7,7 @@ import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
+
 public class TransactionService {
     private static final String CSV_HEADER = "id,userEmail,bookId,borrowDate,dueDate,returnDate,isBorrow";
     private static final String TRANSACTION_CSV = "IdeaProjects/libraryProject/src/data/transaction.csv";
@@ -160,9 +161,6 @@ public class TransactionService {
         return false; // No matching transaction found
     }
 
-    /**
-     * Save all transactions to the CSV file.
-     */
     public void saveTransactions() {
         List<String[]> data = transactionList.stream()
                 .map(transaction -> new String[]{
@@ -189,12 +187,7 @@ public class TransactionService {
         return new ArrayList<>(transactionList); // Return a copy to prevent external modification
     }
 
-    /**
-     * Get a transaction by its ID.
-     *
-     * @param id The ID of the transaction.
-     * @return The transaction with the specified ID, or null if not found.
-     */
+
     public Transaction getTransactionById(String id) {
         return transactionMap.get(id);
     }
@@ -210,33 +203,101 @@ public class TransactionService {
                 .filter(transaction -> transaction.getUserEmail().equals(userEmail))
                 .collect(Collectors.toList());
     }
+    public String getMostFrequentUser() {
+        Map<String, Long> userBorrowCounts = transactionList.stream()
+                .filter(Transaction::isBorrow)
+                .collect(Collectors.groupingBy(Transaction::getUserEmail, Collectors.counting()));
 
-    /**
-     * Get all transactions for a specific book.
-     *
-     * @param bookId The ID of the book.
-     * @return A list of transactions for the specified book.
-     */
+        return userBorrowCounts.entrySet().stream()
+                .max(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey)
+                .orElse(null);
+    }
+
     public List<Transaction> getTransactionsByBook(String bookId) {
         return transactionList.stream()
                 .filter(transaction -> transaction.getBookId().equals(bookId))
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Get all active (unreturned) transactions.
-     *
-     * @return A list of all active transactions.
-     */
+
     public List<Transaction> getActiveTransactions() {
         return transactionList.stream()
                 .filter(transaction -> transaction.isBorrow() && transaction.getReturnDate() == null)
                 .collect(Collectors.toList());
     }
+    public boolean updateTransaction(Transaction updatedTransaction) {
+        if (updatedTransaction == null || !transactionMap.containsKey(updatedTransaction.getId())) {
+            return false;
+        }
 
-    /**
-     * Generate a unique transaction ID.
-     *
-     * @return A new unique ID.
-     */
+        Transaction existingTransaction = transactionMap.get(updatedTransaction.getId());
+        existingTransaction.setUserEmail(updatedTransaction.getUserEmail());
+        existingTransaction.setBookId(updatedTransaction.getBookId());
+        existingTransaction.setBorrowDate(updatedTransaction.getBorrowDate());
+        existingTransaction.setDueDate(updatedTransaction.getDueDate());
+        existingTransaction.setReturnDate(updatedTransaction.getReturnDate());
+        existingTransaction.setBorrow(updatedTransaction.isBorrow());
+
+        saveTransactions();
+        return true;
+    }
+    public boolean deleteTransaction(String transactionId) {
+        if (transactionId == null || !transactionMap.containsKey(transactionId)) {
+            return false;
+        }
+
+        Transaction transaction = transactionMap.get(transactionId);
+        transactionList.remove(transaction);
+        transactionMap.remove(transactionId);
+        saveTransactions();
+        return true;
+    }
+
+    public boolean addTransaction(String userEmail, String bookId, LocalDate borrowDate, LocalDate dueDate) {
+        // Validate input parameters
+        if (userEmail == null || userEmail.trim().isEmpty() || bookId == null || bookId.trim().isEmpty() ||
+                borrowDate == null || dueDate == null) {
+            throw new IllegalArgumentException("All fields are required and cannot be null or empty.");
+        }
+
+        // Check if the user has already borrowed the same book and it's not returned
+        boolean alreadyBorrowed = transactionList.stream()
+                .anyMatch(t -> t.getUserEmail().equals(userEmail)
+                        && t.getBookId().equals(bookId)
+                        && t.isBorrow()
+                        && t.getReturnDate() == null);
+
+        if (alreadyBorrowed) {
+            return false; // User has already borrowed this book
+        }
+
+        // Generate a new transaction ID
+        String newId = String.valueOf(nextId);
+
+        // Create a new transaction
+        Transaction transaction = new Transaction(
+                newId,
+                userEmail,
+                bookId,
+                borrowDate,
+                dueDate,
+                null, // Return date is initially null
+                true  // isBorrow is true for new transactions
+        );
+
+        // Add the transaction to the map and list
+        transactionMap.put(newId, transaction);
+        transactionList.add(transaction);
+
+        // Increment the next available ID
+        nextId++;
+
+        // Save the updated transactions to the CSV file
+        saveTransactions();
+
+        return true;
+    }
+
+
 }

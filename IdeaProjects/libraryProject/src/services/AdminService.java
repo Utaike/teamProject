@@ -4,6 +4,7 @@ import models.Book;
 import models.Transaction;
 import models.User;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -60,4 +61,31 @@ public class AdminService {
     public List<Book> getAllAvailableBooks(){
         return bookService.getAvailableBooks();
     }
+    public Map<LocalDate, Integer> getRegistrationsPerDay() {
+        return userService.getRegistrationsPerDay();
+    }
+    public Map<String, Integer> getRoleDistribution() {
+        return userService.getRoleDistribution();
+    }
+    public Book getBookById(String id){
+        return bookService.getBookById(id);
+    }
+    public Transaction getTransactionById(String id){
+        return transactionService.getTransactionById(id);
+    }
+    public boolean addTransaction(String userEmail, String bookId, LocalDate borrowDate, LocalDate dueDate){
+        return transactionService.addTransaction(userEmail,bookId,borrowDate,dueDate);
+    }
+    public boolean deleteTransaction(String id){
+        return transactionService.deleteTransaction(id);
+    }
+    public boolean updateTransaction(Transaction transaction){
+        return transactionService.updateTransaction(transaction);
+    }
+    public String getBookTitleById(String id){
+        return bookService.getBookTitleById(id);
+    }
+
+
+
 }

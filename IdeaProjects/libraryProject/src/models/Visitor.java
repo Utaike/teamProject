@@ -1,9 +1,10 @@
 package models;
 
+import java.time.LocalDate;
+
 public class Visitor extends User{
-    private static int totalVisitors=0;
-    public Visitor(String name, String email, String password,String imgPath) {
-        super(name, email, password,imgPath);
+    public Visitor(String name, String email, String password, String imgPath, LocalDate registerDate) {
+        super(name, email, password,imgPath,registerDate);
         this.role = "visitor";
     }
 

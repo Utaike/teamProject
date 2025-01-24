@@ -165,7 +165,7 @@ public class BookService {
             return false; // Book does not exist
         }
 
-        // Update the book in the map and list
+
         bookMap.put(updatedBook.getId(), updatedBook);
         bookList.replaceAll(book -> book.getId().equals(updatedBook.getId()) ? updatedBook : book);
         saveBooks(); // Save changes to CSV
@@ -190,12 +190,6 @@ public class BookService {
         return true;
     }
 
-    /**
-     * Get books by genre.
-     *
-     * @param genre The genre to filter by.
-     * @return A list of books in the specified genre.
-     */
     public List<Book> getBooksByGenre(String genre) {
         return bookList.stream()
                 .filter(book -> book.getGenre().equalsIgnoreCase(genre))
@@ -225,12 +219,10 @@ public class BookService {
                 .distinct()
                 .collect(Collectors.toList());
     }
-
-    /**
-     * Get all unique authors.
-     *
-     * @return A list of all unique authors.
-     */
+    public String getBookTitleById(String id){
+        Book book=bookMap.get(id);
+        return book!=null?book.getTitle() : "Unknown";
+    }
     public List<String> getUniqueAuthors() {
         return bookList.stream()
                 .map(Book::getAuthor)

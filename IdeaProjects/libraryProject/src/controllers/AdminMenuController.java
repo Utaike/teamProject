@@ -38,7 +38,7 @@ public class AdminMenuController {
             case "Manage Users":
                 navigateToManageUsers.run();
                 break;
-            case "Borrowed History":
+            case "Manage Transactions":
                 navigateToBorrowedHistory.run();
                 break;
             default:

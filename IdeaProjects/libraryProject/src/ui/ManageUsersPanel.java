@@ -1,6 +1,7 @@
 package ui;
 
 import controllers.AdminController;
+import models.Admin;
 import models.User;
 import models.Visitor;
 import utils.FileUtils;
@@ -12,6 +13,7 @@ import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.io.File;
+import java.time.LocalDate;
 import java.util.List;
 
 public class ManageUsersPanel extends JPanel {
@@ -86,7 +88,9 @@ public class ManageUsersPanel extends JPanel {
         JTextField nameField = new JTextField();
         JTextField emailField = new JTextField();
         JTextField passwordField = new JTextField();
-        JTextField roleField = new JTextField();
+        JComboBox<String> roleField = new JComboBox<>(new String[]{"Visitor", "Admin"});
+        roleField.setMaximumSize(new Dimension(300, 30));
+        roleField.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         // Add a JLabel and JButton for image selection
         JLabel imageLabel = new JLabel("No image selected");
@@ -118,7 +122,8 @@ public class ManageUsersPanel extends JPanel {
         formPanel.add(emailField);
         formPanel.add(new JLabel("Password:"));
         formPanel.add(passwordField);
-        formPanel.add(new JLabel("Role:"));
+
+        formPanel.add(roleField);
         formPanel.add(roleField);
         formPanel.add(imagePanel); // Add the image selection panel
         formPanel.add(new JLabel()); // Empty label for alignment
@@ -128,7 +133,7 @@ public class ManageUsersPanel extends JPanel {
         if (result == JOptionPane.OK_OPTION) {
             // Validate input fields
             if (nameField.getText().isEmpty() || emailField.getText().isEmpty() ||
-                    passwordField.getText().isEmpty() || roleField.getText().isEmpty()) {
+                    passwordField.getText().isEmpty() ) {
                 JOptionPane.showMessageDialog(this, "All fields are required!", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
@@ -145,16 +150,17 @@ public class ManageUsersPanel extends JPanel {
                     return;
                 }
             }
-
+            String name = nameField.getText();
+            String email = emailField.getText();
+            String password = passwordField.getText();
+            String role = (String) roleField.getSelectedItem();
             // Create a new user
-            User newUser = new Visitor(
-                    nameField.getText(),
-                    emailField.getText(),
-                    passwordField.getText(),
-                    "src/images/profiles/" + imagePath // Store the image path
-            );
-
-            // Add the user to the AdminController
+            User newUser;
+            if("Admin".equalsIgnoreCase(role)){
+                newUser = new Admin(name, email, password, "src/images/profiles/" + imagePath, LocalDate.now());
+            }else {
+                newUser = new Visitor(name, email, password, "src/images/profiles/" + imagePath, LocalDate.now());
+            }
             boolean isAdded = adminController.addUser(newUser);
 
             if (isAdded) {

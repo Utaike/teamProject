@@ -4,17 +4,18 @@ package ui;
 import controllers.AdminController;
 import controllers.AdminMenuController;
 import models.Book;
+import models.Transaction;
 import models.User;
-import models.Visitor;
-import ui.components.CreateTablePanel;
-import ui.components.Header;
+import ui.components.*;
 import ui.components.Menu;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -63,6 +64,7 @@ public class AdminDashboard extends JPanel {
         // Add panels to the main content area
         innerCardPanel.add(createHomePanel(), "Home");
         innerCardPanel.add(createManageUsersPanel(), "ManageUsers");
+        innerCardPanel.add(createManageTransactionPanel(),"ManageTransactions");
         innerCardLayout.show(innerCardPanel, "Home");
     }
     private JPanel createSidebar() {
@@ -77,11 +79,11 @@ public class AdminDashboard extends JPanel {
                 () -> innerCardLayout.show(innerCardPanel, "Home"), // Navigate to Home
                 () -> innerCardLayout.show(innerCardPanel, "ManageBooks"), // Navigate to Manage Books
                 () -> innerCardLayout.show(innerCardPanel, "ManageUsers"), // Navigate to Manage Users
-                () -> innerCardLayout.show(innerCardPanel, "BorrowedHistory") // Navigate to Borrowed History
+                () -> innerCardLayout.show(innerCardPanel, "ManageTransactions") // Navigate to Borrowed History
         );
 
         // Add buttons to the sidebar
-        String[] menuItems = {"Home", "View Profile", "Manage Books", "Manage Users", "Borrowed History"};
+        String[] menuItems = {"Home", "View Profile", "Manage Books", "Manage Users", "Manage Transactions"};
         Menu menu =new Menu(menuItems,adminMenuController::handleMenuButtonClick);
         sideBar.add(menu);
         return sideBar;
@@ -95,73 +97,83 @@ public class AdminDashboard extends JPanel {
     private JPanel createManageUsersPanel(){
         return new ManageUsersPanel(adminController);
     }
+    private JPanel createManageTransactionPanel(){
+        return new ManageTransactionPanel(adminController);
+    }
 
     private JPanel createHomePanel() {
-        // Load icons (replace with your actual image paths)
-        ImageIcon usersIcon = scaleIcon("src/images/icons/users.png",50,50);
-        ImageIcon booksIcon = scaleIcon("src/images/icons/books.png",50,50);
-        ImageIcon genresIcon = scaleIcon("src/images/icons/books.png",50,50);
-        ImageIcon availableBooksIcon = scaleIcon("src/images/icons/avialableBooks.png",50,50);
         JPanel mainContent = new JPanel(new BorderLayout());
-        mainContent.setBorder(BorderFactory.createEmptyBorder(PADDING, PADDING, PADDING, PADDING)); // Padding
+        mainContent.setBorder(BorderFactory.createEmptyBorder(PADDING, PADDING, PADDING, PADDING));
 
         // Create a panel for the cards (top part)
-        JPanel statsPanel = new JPanel(new GridLayout(2, 2, 10, 10)); // 2x2 grid layout
-        statsPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0)); // Add bottom margin
+        JPanel statsPanel = createStatsPanel();
+        mainContent.add(statsPanel, BorderLayout.NORTH);
+
+        // Create a panel for the graphs (bottom part)
+        JPanel graphPanel = new JPanel(new GridLayout(1, 3, 10, 10)); // 1 row, 3 columns, with 10px gaps
+
+        // Add the registration graph panel
+        Map<LocalDate, Integer> registrationsPerDay = adminController.getRegisterPerDay();
+        System.out.println("Registrations per day in home panel: " + registrationsPerDay); // Debugging
+        JPanel registrationGraphPanel = new RegistrationGraphPanel(registrationsPerDay);
+        registrationGraphPanel.setPreferredSize(new Dimension(400, 300)); // Set fixed size
+        graphPanel.add(registrationGraphPanel);
+
+        // Add the role distribution pie chart panel
+        Map<String, Integer> roleDistribution = adminController.getRoleDistribution();
+        System.out.println("Role distribution in home panel: " + roleDistribution); // Debugging
+        JPanel rolePieChartPanel = new PieChartPanel(roleDistribution, "User Role Distribution");
+        rolePieChartPanel.setPreferredSize(new Dimension(400, 300)); // Set fixed size
+        graphPanel.add(rolePieChartPanel);
+
+        // Add the book status pie chart panel
+        int borrowedBooks = adminController.totalBorrowedBooks();
+        int availableBooks = adminController.totalAvailableBooks();
+        System.out.println("Borrowed books: " + borrowedBooks + ", Available books: " + availableBooks); // Debugging
+        JPanel bookPieChartPanel = new BookPieChartPanel(borrowedBooks, availableBooks);
+        bookPieChartPanel.setPreferredSize(new Dimension(400, 300)); // Set fixed size
+        graphPanel.add(bookPieChartPanel);
+
+        // Add the graph panel to the main content
+        mainContent.add(graphPanel, BorderLayout.CENTER);
+
+        return mainContent;
+    }
+    private JPanel createStatsPanel() {
+        JPanel statsPanel = new JPanel(new GridLayout(2, 2, 10, 10));
+        statsPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
 
         // Fetch data from the AdminController
         int totalUsers = adminController.totalUsers();
         int totalBooks = adminController.totalBooks();
         int totalGenre = adminController.totalGenre();
         int totalAvailableBooks = adminController.totalAvailableBooks();
+        int totalBorrowedBooks = adminController.totalBorrowedBooks();
 
-        int totalBorrowedBooks =adminController.totalBorrowedBooks();
-        List<User> users = adminController.allUsers();
-        List<Book> books = adminController.allBooks();
+        // Create statistical cards
+        statsPanel.add(createStatCard("Total Users", String.valueOf(totalUsers), scaleIcon("src/images/icons/users.png", 50, 50), () -> showPanel("UserTable", createUserTablePanel())));
+        statsPanel.add(createStatCard("Total Books", String.valueOf(totalBooks), scaleIcon("src/images/icons/books.png", 50, 50), () -> showPanel("BookTable", createBookTablePanel())));
+        statsPanel.add(createStatCard("Total Genres", String.valueOf(totalGenre), scaleIcon("src/images/icons/books.png", 50, 50), () -> showPanel("GenreTable", createGenreTablePanel())));
+        statsPanel.add(createStatCard("Total Available Books", String.valueOf(totalAvailableBooks), scaleIcon("src/images/icons/avialableBooks.png", 50, 50), () -> showPanel("AvailableBookTable", createAvailableBooksTablePanel())));
+        statsPanel.add(createStatCard("Total Borrowed Books", String.valueOf(totalBorrowedBooks), scaleIcon("src/images/icons/avialableBooks.png", 50, 50), () -> showPanel("BorrowedBooksTable", createBorrowedTablePanel())));
 
-        // Create statistical cards with click actions
-        statsPanel.add((createStatCard("Total Users", String.valueOf(totalUsers), usersIcon, () -> {
-            JPanel userTablePanel= createUserTablePanel();
-            innerCardPanel.add(userTablePanel,"UserTable");
-            innerCardLayout.show(innerCardPanel, "UserTable");
-        })));
-
-        statsPanel.add((createStatCard("Total Books", String.valueOf(totalBooks), booksIcon, () -> {
-            JPanel bookTablePanel=createBookTablePanel();
-            innerCardPanel.add(bookTablePanel,"BookTable");
-            innerCardLayout.show(innerCardPanel, "BookTable");
-        })));
-
-        statsPanel.add((createStatCard("Total Genres", String.valueOf(totalGenre), genresIcon, () -> {
-            JPanel genreTable= createGenreTablePanel();
-            innerCardPanel.add(genreTable,"GenreTable");
-            innerCardLayout.show(innerCardPanel, "GenreTable");
-        })));
-
-        statsPanel.add((createStatCard("Total Available Books", String.valueOf(totalAvailableBooks), availableBooksIcon, () -> {
-            JPanel availableBookTable=createAvailableBooksTablePanel();
-            innerCardPanel.add(availableBookTable,"AvailableBookTable");
-            innerCardLayout.show(innerCardPanel, "AvailableBookTable");
-        })));
-        statsPanel.add((createStatCard("Total Borrowed Books", String.valueOf(totalBorrowedBooks), availableBooksIcon, () -> {
-            JPanel borrowedBooksTable = new CreateTablePanel();
-            innerCardPanel.add(borrowedBooksTable,"BorrowedBooksTable");
-            innerCardLayout.show(cardPanel, "BorrowedBooksTable");
-        })));
-        mainContent.add(statsPanel, BorderLayout.NORTH);
-        return mainContent;
+        return statsPanel;
+    }
+    private void showPanel(String panelName, JPanel panel) {
+        innerCardPanel.add(panel, panelName);
+        innerCardLayout.show(innerCardPanel, panelName);
     }
 
     private JPanel createUserTablePanel() {
         List<User> users = adminController.allUsers();
-        String[] userColumns = {"Name", "Email", "Role"};
+        String[] userColumns = {"Name", "Email", "Role","Register Date"};
 
         CreateTablePanel tablePanelCreator = new CreateTablePanel();
         return tablePanelCreator.createTablePanel(
                 "Users",
                 users,
                 userColumns,
-                user -> new Object[]{user.getName(), user.getEmail(), user.getRole()}, // rowMapper for User
+                user -> new Object[]{user.getName(), user.getEmail(), user.getRole(),user.getRegisterDate()}, // rowMapper for User
                 () -> innerCardLayout.show(innerCardPanel, "Home"), // seeAllAction
                 () -> innerCardLayout.show(innerCardPanel, "Home")  // showLessAction
         );
@@ -221,6 +233,19 @@ public class AdminDashboard extends JPanel {
                 () -> innerCardLayout.show(innerCardPanel, "Home"), // seeAllAction
                 () -> innerCardLayout.show(innerCardPanel, "Home")  // showLessAction
         );
+    }
+    private JPanel createBorrowedTablePanel(){
+        List<Transaction> borrowedBooks=adminController.allTransactions();
+        CreateTablePanel createTablePanel=new CreateTablePanel();
+        String[] borrowedBooksColumns = {"ID","Email","Book's ID","BorrowDate","DueDate","ReturnDate","Status"};
+        return createTablePanel.createTablePanel(
+                "Borrowed Books",
+                borrowedBooks,
+                borrowedBooksColumns,
+                transaction -> new Object[]{transaction.getId(),transaction.getUserEmail(),transaction.getBookId(),transaction.getBorrowDate(),transaction.getDueDate(), transaction.getReturnDate(),transaction.isReturned()},
+                ()->innerCardLayout.show(innerCardPanel,"Home"),
+                ()->innerCardLayout.show(innerCardPanel,"Home")
+                );
     }
     private ImageIcon scaleIcon(String path, int width, int height) {
         ImageIcon icon = new ImageIcon(path);
