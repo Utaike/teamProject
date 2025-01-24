@@ -1,5 +1,5 @@
 id,userEmail,bookId,borrowDate,dueDate,returnDate,isBorrow,status
-1,sengkea@gmail.com,1,2025-01-17,2025-01-31,2025-01-17,false,COMPLETED
+1,sengkea@gmail.com,1,2025-01-01,2025-01-15,2025-01-17,false,COMPLETED
 2,sengkea@gmail.com,4,2025-01-17,2025-01-31,2025-01-17,false,COMPLETED
 3,sengkea@gmail.com,2,2025-01-17,2025-01-31,2025-01-17,false,COMPLETED
 4,sengkea@gmail.com,2,2025-01-17,2025-01-31,2025-01-17,false,COMPLETED
@@ -31,9 +31,15 @@ id,userEmail,bookId,borrowDate,dueDate,returnDate,isBorrow,status
 31,sengkea@gmail.com,14,2025-01-23,2025-02-06,2025-01-24,false,COMPLETED
 35,sengkea@gmail.com,15,2025-01-23,2025-02-06,,true,REJECTED
 36,sengkea@gmail.com,13,2025-01-23,2025-02-06,2025-01-24,false,COMPLETED
-37,sengkea@gmail.com,13,2025-01-24,2025-02-07,,true,APPROVED
-38,sengkea@gmail.com,6,2025-01-24,2025-02-07,,true,REJECTED
+37,sengkea@gmail.com,13,2025-01-24,2025-02-07,2025-01-24,false,COMPLETED
+38,sengkea@gmail.com,6,2025-01-24,2025-02-07,2025-01-24,false,COMPLETED
 39,sengkea@gmail.com,19,2025-01-24,2025-02-07,2025-01-24,false,COMPLETED
 40,sengkea@gmail.com,11,2025-01-24,2025-02-07,,true,REJECTED
 41,koo@gmail.com,10,2025-01-24,2025-02-07,,true,APPROVED
 42,koo@gmail.com,12,2025-01-24,2025-02-07,2025-01-24,false,COMPLETED
+43,sengkea@gmail.com,9,2025-01-24,2025-02-07,2025-01-24,false,COMPLETED
+44,sengkea@gmail.com,13,2025-01-24,2025-02-07,,true,APPROVED
+45,sengkea@gmail.com,12,2025-01-24,2025-02-07,2025-01-24,false,COMPLETED
+46,sengkea@gmail.com,7,2025-01-24,2025-02-07,2025-01-24,false,COMPLETED
+47,sengkea@gmail.com,6,2025-01-24,2025-02-07,,true,APPROVED
+48,sengkea@gmail.com,7,2025-01-24,2025-02-07,,true,APPROVED

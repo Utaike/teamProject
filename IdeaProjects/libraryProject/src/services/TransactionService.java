@@ -278,4 +278,95 @@ public class TransactionService {
                 .filter(transaction -> transaction.getUserEmail().equals(userEmail))
                 .collect(Collectors.toList());
     }
+    public String getMostFrequentUser() {
+        Map<String, Long> userBorrowCounts = transactionList.stream()
+                .filter(Transaction::isBorrowed)
+                .collect(Collectors.groupingBy(Transaction::getUserEmail, Collectors.counting()));
+
+        return userBorrowCounts.entrySet().stream()
+                .max(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey)
+                .orElse(null);
+    }
+
+    public List<Transaction> getTransactionsByBook(String bookId) {
+        return transactionList.stream()
+                .filter(transaction -> transaction.getBookId().equals(bookId))
+                .collect(Collectors.toList());
+    }
+    public boolean updateTransaction(Transaction updatedTransaction) {
+        if (updatedTransaction == null || !transactionMap.containsKey(updatedTransaction.getId())) {
+            return false;
+        }
+
+        Transaction existingTransaction = transactionMap.get(updatedTransaction.getId());
+        existingTransaction.setUserEmail(updatedTransaction.getUserEmail());
+        existingTransaction.setBookId(updatedTransaction.getBookId());
+        existingTransaction.setBorrowDate(updatedTransaction.getBorrowDate());
+        existingTransaction.setDueDate(updatedTransaction.getDueDate());
+        existingTransaction.setReturnDate(updatedTransaction.getReturnDate());
+        existingTransaction.setBorrowed(updatedTransaction.isBorrowed());
+
+        saveTransactions();
+        return true;
+    }
+    public boolean deleteTransaction(String transactionId) {
+        if (transactionId == null || !transactionMap.containsKey(transactionId)) {
+            return false;
+        }
+
+        Transaction transaction = transactionMap.get(transactionId);
+        transactionList.remove(transaction);
+        transactionMap.remove(transactionId);
+        saveTransactions();
+        return true;
+    }
+
+    public boolean addTransaction(String userEmail, String bookId, LocalDate borrowDate, LocalDate dueDate) {
+        // Validate input parameters
+        if (userEmail == null || userEmail.trim().isEmpty() || bookId == null || bookId.trim().isEmpty() ||
+                borrowDate == null || dueDate == null) {
+            throw new IllegalArgumentException("All fields are required and cannot be null or empty.");
+        }
+
+        // Validate that dueDate is after borrowDate
+        if (dueDate.isBefore(borrowDate)) {
+            throw new IllegalArgumentException("Due date must be after the borrow date.");
+        }
+
+        // Check if the user has already borrowed the same book and it's not returned
+        boolean alreadyBorrowed = transactionList.stream()
+                .anyMatch(t -> t.getUserEmail().equals(userEmail)
+                        && t.getBookId().equals(bookId)
+                        && t.isBorrowed()
+                        && t.getReturnDate() == null);
+
+        if (alreadyBorrowed) {
+            return false; // User has already borrowed this book
+        }
+
+        // Generate a new transaction ID
+        String newId = generateId();
+
+        // Create a new transaction with a default status of "APPROVED"
+        Transaction transaction = new Transaction(
+                newId,
+                userEmail,
+                bookId,
+                borrowDate,
+                dueDate,
+                null, // Return date is initially null
+                true, // isBorrow is true for new transactions
+                "APPROVED" // Default status for new transactions
+        );
+
+        // Add the transaction to the map and list
+        transactionMap.put(newId, transaction);
+        transactionList.add(transaction);
+
+        // Save the updated transactions to the CSV file
+        saveTransactions();
+
+        return true;
+    }
 }

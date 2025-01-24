@@ -5,6 +5,9 @@ import models.User;
 import models.Visitor;
 import utils.CSVUtils;
 import java.awt.print.Book;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -18,11 +21,15 @@ public class UserService {
     private static final int EMAIL_INDEX = 1;
     private static final int ROLE_INDEX=3;
     private static final int IMG_PATH = 4;
+    private static final int REGISTER_DATE = 5;
+    private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-M-d");
     private Map<String,User> userMap; // HashMap for fast lookup(we plan to use email as a key )
     private List<User> userList;  // ArrayList store user in order
+
     public UserService(){
         this.userMap=new HashMap<>();
         this.userList=new ArrayList<>();
+
         loadUsers();
     }
 
@@ -30,18 +37,19 @@ public class UserService {
         List<String[]> rows = CSVUtils.readCSV(REGISTER_INFO);
 
         for(String[] row:rows){
-            if (row.length >= 5){
+            if (row.length >= 6){
                 String name = row[NAME_INDEX];
                 String email = row[EMAIL_INDEX];
                 String password = row[PASSWORD_INDEX];
                 String role = row[ROLE_INDEX]; // Role is in the 4th column
                 String imgPath = "IdeaProjects/libraryProject/src/images/profiles/" + row[IMG_PATH];
+                LocalDate registerDate = LocalDate.parse(row[REGISTER_DATE], formatter);
                 System.out.println(imgPath);
                 User user;
                 if (role.equals("admin")) {
-                    user = new Admin(name, email, password, imgPath); // Create Admin object
+                    user = new Admin(name, email, password, imgPath,registerDate); // Create Admin object
                 } else {
-                    user = new Visitor(name, email, password, imgPath); // Create Visitor object
+                    user = new Visitor(name, email, password, imgPath,registerDate); // Create Visitor object
                 }
                 userMap.put(user.getEmail(), user); // Add to HashMap for fast lookup
                 userList.add(user); // Add to ArrayList for displaying and admin operations
@@ -67,7 +75,9 @@ public class UserService {
         userMap.put(newUser.getEmail(),newUser);
         userList.add(newUser);
         List<String []> newData =new ArrayList<>();
-        newData.add(new String[]{newUser.getName(),newUser.getEmail(),newUser.getPassword(),newUser.getRole(), newUser.getImgPath()});
+        newData.add(new String[]{newUser.getName(),newUser.getEmail(),newUser.getPassword(),newUser.getRole(), newUser.getImgPath()
+        ,newUser.getRegisterDate().toString()
+        });
         CSVUtils.writeCSV(REGISTER_INFO,newData);
         System.out.println("Register Successfully,Total Users "+getTotalVisitor());
         return true;
@@ -121,7 +131,8 @@ public class UserService {
                     user.getEmail(),
                     user.getPassword(),
                     user.getRole(),
-                    user.getImgPath().replace("src/images/profiles/", "") // Remove the prefix for CSV
+                    user.getImgPath().replace("src/images/profiles/", ""),
+                    user.getRegisterDate().toString()// Remove the prefix for CSV
             });
         }
         CSVUtils.updateCSV(REGISTER_INFO, updatedData,REGISTER_HEADER);
@@ -153,7 +164,8 @@ public class UserService {
                     user.getEmail(),
                     user.getPassword(),
                     user.getRole(),
-                    user.getImgPath().replace("src/images/profiles/", "") // Remove the prefix for CSV
+                    user.getImgPath().replace("src/images/profiles/", ""),
+                    user.getRegisterDate().toString()// Remove the prefix for CSV
             });
         }
 
@@ -176,12 +188,35 @@ public class UserService {
                 newUser.getEmail(),
                 newUser.getPassword(),
                 newUser.getRole(),
-                newUser.getImgPath().replace("src/images/profiles/", "") // Remove the prefix for CSV
+                newUser.getImgPath().replace("src/images/profiles/", ""),
+                newUser.getRegisterDate().toString()// Remove the prefix for CSV
         });
 
         CSVUtils.writeCSV(REGISTER_INFO, newData); // true = append mode
 
         System.out.println("User added successfully. Total users: " + userList.size());
         return true; // User added successfully
+    }
+    public Map<LocalDate, Integer> getRegistrationsPerDay() {
+        Map<LocalDate, Integer> registrationsPerDay = new HashMap<>();
+
+        for (User user : userList) {
+            LocalDate registerDate = user.getRegisterDate();
+            registrationsPerDay.put(registerDate, registrationsPerDay.getOrDefault(registerDate, 0) + 1);
+        }
+
+        System.out.println("Registrations per day: " + registrationsPerDay); // Debugging
+        return registrationsPerDay;
+    }
+    public Map<String, Integer> getRoleDistribution() {
+        Map<String, Integer> roleDistribution = new HashMap<>();
+
+        for (User user : userList) {
+            String role = user.getRole();
+            roleDistribution.put(role, roleDistribution.getOrDefault(role, 0) + 1);
+        }
+
+        System.out.println("Role distribution: " + roleDistribution); // Debugging
+        return roleDistribution;
     }
 }

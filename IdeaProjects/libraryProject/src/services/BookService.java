@@ -165,37 +165,33 @@ public class BookService {
             return false; // Book does not exist
         }
 
-        // Update the book in the map and list
+
         bookMap.put(updatedBook.getId(), updatedBook);
         bookList.replaceAll(book -> book.getId().equals(updatedBook.getId()) ? updatedBook : book);
         saveBooks(); // Save changes to CSV
         return true;
     }
+//    public boolean deleteBook(String id) {
+//        if (!bookMap.containsKey(id)) {
+//            return false; // Book does not exist
+//        }
+//
+//        // Remove the book from the map and list
+//        bookMap.remove(id);
+//        bookList.removeIf(book -> book.getId().equals(id));
+//        saveBooks(); // Save changes to CSV
+//        return true;
+//    }
+    public boolean deleteBook(String isbn) {
+        Book bookToDelete = findBookByISBN(isbn);
+        if (bookToDelete == null) return false;
 
-    /**
-     * Delete a book by its ID.
-     *
-     * @param id The ID of the book to delete.
-     * @return True if the book was deleted successfully, false otherwise.
-     */
-    public boolean deleteBook(String id) {
-        if (!bookMap.containsKey(id)) {
-            return false; // Book does not exist
-        }
-
-        // Remove the book from the map and list
-        bookMap.remove(id);
-        bookList.removeIf(book -> book.getId().equals(id));
-        saveBooks(); // Save changes to CSV
+        bookMap.remove(bookToDelete.getId());
+        bookList.removeIf(b -> b.getId().equals(bookToDelete.getId()));
+        saveBooks();
         return true;
     }
 
-    /**
-     * Get books by genre.
-     *
-     * @param genre The genre to filter by.
-     * @return A list of books in the specified genre.
-     */
     public List<Book> getBooksByGenre(String genre) {
         return bookList.stream()
                 .filter(book -> book.getGenre().equalsIgnoreCase(genre))
@@ -225,12 +221,10 @@ public class BookService {
                 .distinct()
                 .collect(Collectors.toList());
     }
-
-    /**
-     * Get all unique authors.
-     *
-     * @return A list of all unique authors.
-     */
+    public String getBookTitleById(String id){
+        Book book=bookMap.get(id);
+        return book!=null?book.getTitle() : "Unknown";
+    }
     public List<String> getUniqueAuthors() {
         return bookList.stream()
                 .map(Book::getAuthor)
@@ -251,5 +245,34 @@ public class BookService {
         }
         return count;
     }
+    public Book getBookByIsbn(String isbn) {
+        return findBookByISBN(isbn); // Implement ISBN-based lookup
+    }
+    private Book findBookByISBN(String isbn) {
+        return bookList.stream()
+                .filter(b -> b.getIsbn().equals(isbn))
+                .findFirst()
+                .orElse(null);
+    }
+    public boolean updateBook(String originalISBN, Book updatedBook) {
+        Book existingBook = findBookByISBN(originalISBN);
+        if (existingBook == null) return false;
 
+        String newISBN = updatedBook.getIsbn();
+
+        // Check for ISBN conflict (if ISBN changed)
+        if (!originalISBN.equals(newISBN)) {
+            if (findBookByISBN(newISBN) != null) return false;
+        }
+
+        // Preserve original ID
+        updatedBook.setId(existingBook.getId());
+
+        // Update data structures
+        bookMap.put(updatedBook.getId(), updatedBook);
+        bookList.replaceAll(b -> b.getId().equals(existingBook.getId()) ? updatedBook : b);
+
+        saveBooks();
+        return true;
+    }
 }

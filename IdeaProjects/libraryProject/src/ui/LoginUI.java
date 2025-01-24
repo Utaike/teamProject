@@ -1,14 +1,18 @@
 package ui;
 
-import controllers.*;
+import controllers.AdminController;
+import controllers.MenuController;
 import utils.createStyledButton;
+import controllers.BookController;
 import models.Admin;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
+import java.time.LocalDate;
 
+import controllers.UserController;
 import models.User;
 import static utils.PlaceHolder.addPasswordPlaceholder;
 import static utils.PlaceHolder.addPlaceholder;
@@ -119,9 +123,9 @@ public class LoginUI extends JFrame {
                     User loggedInUser=userController.getUserByEmail(inputEmail);
                     if(loggedInUser.getRole().equals("admin")){
                         AdminController adminController =new AdminController();
-                        setResizable(true);
-                        cardPanel.add(new AdminDashboard(userController.getUserByEmail(inputEmail), adminController, cardLayout,cardPanel),"AdminDashboard");
+                        cardPanel.add(new AdminDashboard(userController.getUserByEmail(inputEmail), adminController,cardLayout,cardPanel),"AdminDashboard");
                         cardLayout.show(cardPanel,"AdminDashboard");
+                        setResizable(true);
                     }else{
                         cardPanel.add(new UserDashboard(userController.getUserByEmail(inputEmail),cardLayout,cardPanel,new BookController()),"Dashboard");
                         cardLayout.show(cardPanel,"Dashboard");
@@ -277,7 +281,8 @@ public class LoginUI extends JFrame {
                     return;
                 }
                 // Handle registration logic
-                boolean registrationSuccess = userController.register(inputName, inputEmail, new String(inputPassword),uniqueName);
+
+                boolean registrationSuccess = userController.register(inputName, inputEmail, new String(inputPassword),uniqueName, LocalDate.now());
                 if (registrationSuccess) {
                     JOptionPane.showMessageDialog(
                             this,

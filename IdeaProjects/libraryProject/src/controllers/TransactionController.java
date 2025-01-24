@@ -190,16 +190,4 @@ public class TransactionController {
     public List<Transaction> getReturnedBooks() {
         return transactionService.getAllTransactions().stream().filter(transaction -> transaction.isReturned() == true).toList();
     }
-
-    public boolean addTransaction(Transaction newTransaction) {
-        return transactionService.addTransaction(newTransaction);
-    }
-
-    public boolean updateTransaction(Transaction transaction) {
-        return transactionService.updateTransaction(transaction);
-    }
-
-    public boolean deleteTransaction(String transactionId) {
-        return transactionService.deleteTransaction(transactionId);
-    }
 }

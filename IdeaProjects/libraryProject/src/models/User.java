@@ -1,5 +1,7 @@
 package models;
 
+import java.time.LocalDate;
+
 abstract public class User {
 
     protected String name;
@@ -8,12 +10,14 @@ abstract public class User {
     protected String email;
     protected String imgPath;
     protected String role;
+    protected LocalDate registerDate;
 
-    public User(String name, String email,String password,String imgPath) {
+    public User(String name, String email,String password,String imgPath,LocalDate registerDate) {
         this.email = email;
         this.password = password;
         this.name=name;
         this.imgPath=imgPath;
+        this.registerDate=registerDate;
     }
 
     public String getName() {
@@ -36,6 +40,14 @@ abstract public class User {
     }
     public void setName(String name) {
         this.name = name;
+    }
+
+    public LocalDate getRegisterDate() {
+        return registerDate;
+    }
+
+    public void setRegisterDate(LocalDate registerDate) {
+        this.registerDate = registerDate;
     }
 
     public void setPassword(String password) {
