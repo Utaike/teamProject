@@ -1,11 +1,11 @@
-
 package ui;
 
 import controllers.AdminController;
 import controllers.AdminMenuController;
+import controllers.TransactionController;
 import models.Book;
 import models.User;
-import models.Visitor;
+import ui.components.BorrowingRequestsPanel;
 import ui.components.CreateTablePanel;
 import ui.components.Header;
 import ui.components.Menu;
@@ -26,8 +26,6 @@ public class AdminDashboard extends JPanel {
     private final CardLayout innerCardLayout;
     private final JPanel innerCardPanel;
 
-
-
     // Constants for colors, fonts, and padding
     private static final Color CARD_BACKGROUND = new Color(230, 230, 250);
     private static final Color CARD_HOVER_BACKGROUND = new Color(210, 210, 230);
@@ -40,31 +38,34 @@ public class AdminDashboard extends JPanel {
         this.adminController = adminController;
         this.cardLayout = cardLayout;
         this.cardPanel = cardPanel;
-//        this.adminMenuController = new AdminMenuController(this.user, adminController, cardLayout, cardPanel);
 
         setLayout(new BorderLayout());
 
         // Add the header
-        JPanel header =(new Header("Imagine Library", user, this::handleLogout));
-
+        JPanel header = new Header("Imagine Library", user, this::handleLogout);
         add(header, BorderLayout.NORTH);
 
-        JPanel sideBar=createSidebar();
-        add(sideBar,BorderLayout.WEST);
-        innerCardLayout =new CardLayout();
-        innerCardPanel=new JPanel(innerCardLayout);
-        add(innerCardPanel,BorderLayout.CENTER);
+        // Create the sidebar
+        JPanel sideBar = createSidebar();
+        add(sideBar, BorderLayout.WEST);
+
+        // Initialize the inner card layout for main content
+        innerCardLayout = new CardLayout();
+        innerCardPanel = new JPanel(innerCardLayout);
+        add(innerCardPanel, BorderLayout.CENTER);
+
+        // Initialize main content panels
         initializeMainContentPanels();
-
-
-
     }
+
     private void initializeMainContentPanels() {
         // Add panels to the main content area
         innerCardPanel.add(createHomePanel(), "Home");
         innerCardPanel.add(createManageUsersPanel(), "ManageUsers");
-        innerCardLayout.show(innerCardPanel, "Home");
+        innerCardPanel.add(new BorrowingRequestsPanel(adminController, new TransactionController()), "BorrowedHistory");
+        innerCardLayout.show(innerCardPanel, "Home"); // Show the Home panel by default
     }
+
     private JPanel createSidebar() {
         JPanel sideBar = new JPanel();
         sideBar.setLayout(new BoxLayout(sideBar, BoxLayout.Y_AXIS));
@@ -82,26 +83,28 @@ public class AdminDashboard extends JPanel {
 
         // Add buttons to the sidebar
         String[] menuItems = {"Home", "View Profile", "Manage Books", "Manage Users", "Borrowed History"};
-        Menu menu =new Menu(menuItems,adminMenuController::handleMenuButtonClick);
+        Menu menu = new Menu(menuItems, adminMenuController::handleMenuButtonClick);
         sideBar.add(menu);
         return sideBar;
     }
 
-
     private void handleLogout() {
         cardLayout.show(cardPanel, "Login");
-        JOptionPane.showMessageDialog(this, "Logged out successfully!", "Logout", JOptionPane.INFORMATION_MESSAGE); // Show logout message
+        JOptionPane.showMessageDialog(this, "Logged out successfully!", "Logout", JOptionPane.INFORMATION_MESSAGE);
     }
-    private JPanel createManageUsersPanel(){
+
+    private JPanel createManageUsersPanel() {
         return new ManageUsersPanel(adminController);
     }
 
     private JPanel createHomePanel() {
         // Load icons (replace with your actual image paths)
-        ImageIcon usersIcon = scaleIcon("src/images/icons/users.png",50,50);
-        ImageIcon booksIcon = scaleIcon("src/images/icons/books.png",50,50);
-        ImageIcon genresIcon = scaleIcon("src/images/icons/books.png",50,50);
-        ImageIcon availableBooksIcon = scaleIcon("src/images/icons/avialableBooks.png",50,50);
+        ImageIcon usersIcon = scaleIcon("src/images/icons/users.png", 50, 50);
+        ImageIcon booksIcon = scaleIcon("src/images/icons/books.png", 50, 50);
+        ImageIcon genresIcon = scaleIcon("src/images/icons/books.png", 50, 50);
+        ImageIcon availableBooksIcon = scaleIcon("src/images/icons/avialableBooks.png", 50, 50);
+
+        // Main content panel with BorderLayout
         JPanel mainContent = new JPanel(new BorderLayout());
         mainContent.setBorder(BorderFactory.createEmptyBorder(PADDING, PADDING, PADDING, PADDING)); // Padding
 
@@ -114,41 +117,48 @@ public class AdminDashboard extends JPanel {
         int totalBooks = adminController.totalBooks();
         int totalGenre = adminController.totalGenre();
         int totalAvailableBooks = adminController.totalAvailableBooks();
-
-        int totalBorrowedBooks =adminController.totalBorrowedBooks();
-        List<User> users = adminController.allUsers();
-        List<Book> books = adminController.allBooks();
+        int totalBorrowedBooks = adminController.totalBorrowedBooks();
 
         // Create statistical cards with click actions
-        statsPanel.add((createStatCard("Total Users", String.valueOf(totalUsers), usersIcon, () -> {
-            JPanel userTablePanel= createUserTablePanel();
-            innerCardPanel.add(userTablePanel,"UserTable");
+        statsPanel.add(createStatCard("Total Users", String.valueOf(totalUsers), usersIcon, () -> {
+            JPanel userTablePanel = createUserTablePanel();
+            innerCardPanel.add(userTablePanel, "UserTable");
             innerCardLayout.show(innerCardPanel, "UserTable");
-        })));
+        }));
 
-        statsPanel.add((createStatCard("Total Books", String.valueOf(totalBooks), booksIcon, () -> {
-            JPanel bookTablePanel=createBookTablePanel();
-            innerCardPanel.add(bookTablePanel,"BookTable");
+        statsPanel.add(createStatCard("Total Books", String.valueOf(totalBooks), booksIcon, () -> {
+            JPanel bookTablePanel = createBookTablePanel();
+            innerCardPanel.add(bookTablePanel, "BookTable");
             innerCardLayout.show(innerCardPanel, "BookTable");
-        })));
+        }));
 
-        statsPanel.add((createStatCard("Total Genres", String.valueOf(totalGenre), genresIcon, () -> {
-            JPanel genreTable= createGenreTablePanel();
-            innerCardPanel.add(genreTable,"GenreTable");
+        statsPanel.add(createStatCard("Total Genres", String.valueOf(totalGenre), genresIcon, () -> {
+            JPanel genreTable = createGenreTablePanel();
+            innerCardPanel.add(genreTable, "GenreTable");
             innerCardLayout.show(innerCardPanel, "GenreTable");
-        })));
+        }));
 
-        statsPanel.add((createStatCard("Total Available Books", String.valueOf(totalAvailableBooks), availableBooksIcon, () -> {
-            JPanel availableBookTable=createAvailableBooksTablePanel();
-            innerCardPanel.add(availableBookTable,"AvailableBookTable");
+        statsPanel.add(createStatCard("Total Available Books", String.valueOf(totalAvailableBooks), availableBooksIcon, () -> {
+            JPanel availableBookTable = createAvailableBooksTablePanel();
+            innerCardPanel.add(availableBookTable, "AvailableBookTable");
             innerCardLayout.show(innerCardPanel, "AvailableBookTable");
-        })));
-        statsPanel.add((createStatCard("Total Borrowed Books", String.valueOf(totalBorrowedBooks), availableBooksIcon, () -> {
+        }));
+
+        statsPanel.add(createStatCard("Total Borrowed Books", String.valueOf(totalBorrowedBooks), availableBooksIcon, () -> {
             JPanel borrowedBooksTable = new CreateTablePanel();
-            innerCardPanel.add(borrowedBooksTable,"BorrowedBooksTable");
-            innerCardLayout.show(cardPanel, "BorrowedBooksTable");
-        })));
+            innerCardPanel.add(borrowedBooksTable, "BorrowedBooksTable");
+            innerCardLayout.show(innerCardPanel, "BorrowedBooksTable");
+        }));
+
+        // Add statsPanel to the mainContent (top)
         mainContent.add(statsPanel, BorderLayout.NORTH);
+
+        // Create the BorrowingRequestsPanel
+        BorrowingRequestsPanel borrowingRequestsPanel = new BorrowingRequestsPanel(adminController, new TransactionController());
+
+        // Add the BorrowingRequestsPanel below the statsPanel
+        mainContent.add(borrowingRequestsPanel, BorderLayout.CENTER);
+
         return mainContent;
     }
 
@@ -169,33 +179,28 @@ public class AdminDashboard extends JPanel {
 
     private JPanel createBookTablePanel() {
         List<Book> books = adminController.allBooks();
-        String[] bookColumns = {"ID", "Title", "Author", "Genre","Description","Status"};
+        String[] bookColumns = {"ID", "Title", "Author", "Genre", "Description", "Status"};
 
         CreateTablePanel tablePanelCreator = new CreateTablePanel();
         return tablePanelCreator.createTablePanel(
                 "Books",
                 books,
                 bookColumns,
-                book -> new Object[]{book.getId(), book.getTitle(), book.getAuthor(), book.getGenre(),book.getDescription(),book.isAvailable()}, // rowMapper for Book
+                book -> new Object[]{book.getId(), book.getTitle(), book.getAuthor(), book.getGenre(), book.getDescription(), book.isAvailable()}, // rowMapper for Book
                 () -> innerCardLayout.show(innerCardPanel, "Home"), // seeAllAction
                 () -> innerCardLayout.show(innerCardPanel, "Home")  // showLessAction
         );
     }
 
     private JPanel createGenreTablePanel() {
-        // Fetch genre counts from the AdminService
         Map<String, Integer> genreCounts = adminController.allGenres();
-
-        // Convert the map to a list of rows for the table
         List<String[]> genreData = new ArrayList<>();
         for (Map.Entry<String, Integer> entry : genreCounts.entrySet()) {
             genreData.add(new String[]{entry.getKey(), String.valueOf(entry.getValue())});
         }
 
-        // Define the table columns
         String[] genreColumns = {"Genre", "Total Books"};
 
-        // Create the table panel
         CreateTablePanel tablePanelCreator = new CreateTablePanel();
         return tablePanelCreator.createTablePanel(
                 "Genres",
@@ -208,7 +213,6 @@ public class AdminDashboard extends JPanel {
     }
 
     private JPanel createAvailableBooksTablePanel() {
-        // Fetch available books data from the AdminController (if available)
         List<Book> availableBooks = adminController.allAvailableBooks();
         String[] availableBooksColumns = {"ID", "Title", "Author", "Genre"};
 
@@ -222,40 +226,38 @@ public class AdminDashboard extends JPanel {
                 () -> innerCardLayout.show(innerCardPanel, "Home")  // showLessAction
         );
     }
+
     private ImageIcon scaleIcon(String path, int width, int height) {
         ImageIcon icon = new ImageIcon(path);
-        Image image = icon.getImage(); // Get the image from the icon
-        Image scaledImage = image.getScaledInstance(width, height, Image.SCALE_SMOOTH); // Resize image
-        return new ImageIcon(scaledImage); // Return the scaled image as ImageIcon
+        Image image = icon.getImage();
+        Image scaledImage = image.getScaledInstance(width, height, Image.SCALE_SMOOTH);
+        return new ImageIcon(scaledImage);
     }
 
     private JPanel createStatCard(String title, String value, ImageIcon icon, Runnable onClickAction) {
         JPanel card = new JPanel();
-        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS)); // Vertical layout
+        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
         card.setBackground(CARD_BACKGROUND);
         card.setBorder(BorderFactory.createEmptyBorder(PADDING, PADDING, PADDING, PADDING));
-        card.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)); // Change cursor to hand when hovering
-        JLabel iconLabel = new JLabel(icon);
-        iconLabel.setAlignmentX(Component.CENTER_ALIGNMENT); // Center the icon horizontally
+        card.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
-        // Create the title label
+        JLabel iconLabel = new JLabel(icon);
+        iconLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
         JLabel titleLabel = new JLabel(title);
         titleLabel.setFont(TITLE_FONT);
-        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT); // Center the title horizontally
+        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        // Create the value label
         JLabel valueLabel = new JLabel(value);
         valueLabel.setFont(VALUE_FONT);
-        valueLabel.setAlignmentX(Component.CENTER_ALIGNMENT); // Center the value horizontally
+        valueLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        // Add components to the card
         card.add(iconLabel);
-        card.add(Box.createVerticalStrut(10)); // Add spacing between icon and title
+        card.add(Box.createVerticalStrut(10));
         card.add(titleLabel);
-        card.add(Box.createVerticalStrut(10)); // Add spacing between title and value
+        card.add(Box.createVerticalStrut(10));
         card.add(valueLabel);
 
-        // Add MouseListener for hover and click effects
         card.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -264,17 +266,15 @@ public class AdminDashboard extends JPanel {
 
             @Override
             public void mouseEntered(MouseEvent e) {
-                card.setBackground(CARD_HOVER_BACKGROUND); // Change background on hover
+                card.setBackground(CARD_HOVER_BACKGROUND);
             }
 
             @Override
             public void mouseExited(MouseEvent e) {
-                card.setBackground(CARD_BACKGROUND); // Restore original background
+                card.setBackground(CARD_BACKGROUND);
             }
         });
 
         return card;
     }
-
-
 }

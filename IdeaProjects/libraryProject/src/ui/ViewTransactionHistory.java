@@ -106,8 +106,8 @@ public class ViewTransactionHistory extends JPanel {
         // Set column widths
         table.getColumnModel().getColumn(0).setPreferredWidth(100); // Name
         table.getColumnModel().getColumn(1).setPreferredWidth(50);  // NO.
-        table.getColumnModel().getColumn(2).setPreferredWidth(80);  // Book's id
-        table.getColumnModel().getColumn(3).setPreferredWidth(200); // Book's Title
+        table.getColumnModel().getColumn(2).setPreferredWidth(50);  // Book's id
+        table.getColumnModel().getColumn(3).setPreferredWidth(300); // Book's Title
         table.getColumnModel().getColumn(4).setPreferredWidth(100); // Issued date
         table.getColumnModel().getColumn(5).setPreferredWidth(100); // Due date
         table.getColumnModel().getColumn(6).setPreferredWidth(80);  // Status

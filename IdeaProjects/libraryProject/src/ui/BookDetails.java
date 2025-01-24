@@ -16,6 +16,8 @@ import utils.createStyledButton;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 
 public class BookDetails extends JPanel implements TransactionListener {
@@ -192,7 +194,7 @@ public class BookDetails extends JPanel implements TransactionListener {
     private void borrowBook(Book book) {
         BorrowBookUtil.borrowBook(book, user, transactionController, this, this);
     }
-
+    // Method to open a PDF file or URL
     private void openPDFOrURL(String path) {
         if (path == null || path.trim().isEmpty()) {
             JOptionPane.showMessageDialog(this, "The path is empty or invalid.", "Error", JOptionPane.ERROR_MESSAGE);
@@ -201,31 +203,41 @@ public class BookDetails extends JPanel implements TransactionListener {
 
         // Check if the path is a URL
         if (isValidURL(path)) {
-            openURL(path); // Open the URL in a browser or embedded viewer
-        } else {
+            openURL(path); // Open the URL in the default browser
+        }
+        // Check if the path is a valid PDF file
+        else if (isValidPDF(path)) {
             openPDF(path); // Open the PDF file
         }
+        // If neither, show an error
+        else {
+            JOptionPane.showMessageDialog(this, "The path is neither a valid URL nor a valid PDF file.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
-
+    // Helper method to validate if a string is a valid URL
     private boolean isValidURL(String path) {
         try {
-            // Use URI to validate the URL format
-            new java.net.URI(path);
-            return true;
-        } catch (Exception e) {
+            URI uri = new URI(path);
+            // Ensure the URI has a scheme (e.g., http, https, ftp)
+            return uri.getScheme() != null && (uri.getScheme().equalsIgnoreCase("http") || uri.getScheme().equalsIgnoreCase("https"));
+        } catch (URISyntaxException e) {
             return false; // Not a valid URL
         }
     }
-
+    // Helper method to validate if a string is a valid PDF file path
+    private boolean isValidPDF(String path) {
+        // Ensure the path ends with .pdf and the file exists
+        return path.toLowerCase().endsWith(".pdf") && new File(path).exists();
+    }
+    // Method to open a URL in the default browser
     private void openURL(String url) {
         try {
-            // Open the URL in the default browser
-            java.awt.Desktop.getDesktop().browse(new java.net.URI(url));
+            Desktop.getDesktop().browse(new URI(url)); // Open the URL
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Error opening the URL: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
-
+    // Method to open a PDF file
     private void openPDF(String pdfPath) {
         try {
             PDFViewer pdfViewer = new PDFViewer(pdfPath, cardLayout, cardPanel);
@@ -275,24 +287,17 @@ public class BookDetails extends JPanel implements TransactionListener {
         cardLayout.show(cardPanel, "Login");
         JOptionPane.showMessageDialog(this, "Logged out successfully!", "Logout", JOptionPane.INFORMATION_MESSAGE);
     }
-
-    @Override
-    public void onBorrowSuccess(Transaction transaction) {
-        // Show success message
-        JOptionPane.showMessageDialog(this, "Borrowing request successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-        // Refresh the UI
-        refreshUI();
-    }
-    @Override
-    public void onBorrowFailure(String errorMessage) {
-        JOptionPane.showMessageDialog(this, errorMessage, "Error", JOptionPane.ERROR_MESSAGE);
-    }
     @Override
     public void onReturnSuccess(Transaction transaction) {}
     @Override
     public void onReturnFailure(String errorMessage) {}
     @Override
-    public void onRejectSuccess(Transaction transaction) {}
+    public void onRejection(Transaction transaction) {}
+    @Override
+    public void onAdminApproval(Transaction transaction) {
+        // Refresh the UI
+        refreshUI();
+    }
 
     private void refreshUI() {
         // Update the action button

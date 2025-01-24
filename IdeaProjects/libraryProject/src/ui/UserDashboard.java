@@ -13,6 +13,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -165,7 +167,7 @@ public class UserDashboard extends JPanel {
                 // Create the BookCard with separate actions for Read and View Details
                 BookCard bookCard = new BookCard(
                         book, // Pass the book object
-                        () -> openPDF(book.getLink()), // Read action: open PDF
+                        () -> openPDFOrURL(book.getLink()), // Read action: open PDF or URL
                         () -> showBookDetails(book),       // View Details action: navigate to book details
                         "UserDashboard" // Pass the frame type
                 );
@@ -221,7 +223,6 @@ public class UserDashboard extends JPanel {
 
         return genrePanel;
     }
-
     // Method to show book details
     private void showBookDetails(Book book) {
         // Pass the frame type to BookDetails
@@ -229,40 +230,61 @@ public class UserDashboard extends JPanel {
         cardPanel.add(detailsScreen, "BookDetails");
         cardLayout.show(cardPanel, "BookDetails");
     }
-
     // Method to handle logout
     private void handleLogout() {
         cardLayout.show(cardPanel, "Login"); // Switch to the login panel
         JOptionPane.showMessageDialog(this, "Logged out successfully!", "Logout", JOptionPane.INFORMATION_MESSAGE); // Show logout message
     }
+    // Method to open a PDF file or URL
+    private void openPDFOrURL(String path) {
+        if (path == null || path.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "The path is empty or invalid.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
 
+        // Check if the path is a URL
+        if (isValidURL(path)) {
+            openURL(path); // Open the URL in the default browser
+        }
+        // Check if the path is a valid PDF file
+        else if (isValidPDF(path)) {
+            openPDF(path); // Open the PDF file
+        }
+        // If neither, show an error
+        else {
+            JOptionPane.showMessageDialog(this, "The path is neither a valid URL nor a valid PDF file.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    // Helper method to validate if a string is a valid URL
+    private boolean isValidURL(String path) {
+        try {
+            URI uri = new URI(path);
+            // Ensure the URI has a scheme (e.g., http, https, ftp)
+            return uri.getScheme() != null && (uri.getScheme().equalsIgnoreCase("http") || uri.getScheme().equalsIgnoreCase("https"));
+        } catch (URISyntaxException e) {
+            return false; // Not a valid URL
+        }
+    }
+    // Helper method to validate if a string is a valid PDF file path
+    private boolean isValidPDF(String path) {
+        // Ensure the path ends with .pdf and the file exists
+        return path.toLowerCase().endsWith(".pdf") && new File(path).exists();
+    }
+    // Method to open a URL in the default browser
+    private void openURL(String url) {
+        try {
+            Desktop.getDesktop().browse(new URI(url)); // Open the URL
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error opening the URL: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
     // Method to open a PDF file
     private void openPDF(String pdfPath) {
-        // Check if the PDF path is valid
-        if (pdfPath == null || pdfPath.trim().isEmpty()) {
-            JOptionPane.showMessageDialog(this, "The PDF file path is empty or invalid.", "Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        // Check if the PDF file exists
-        File pdfFile = new File(pdfPath);
-        if (!pdfFile.exists() || !pdfFile.isFile()) {
-            JOptionPane.showMessageDialog(this, "The PDF file does not exist or is invalid.", "Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
         try {
-            // Load the PDF document to check if it's valid
-            PDDocument document = PDDocument.load(pdfFile);
-            document.close();
-
-            // Open the PDF viewer
             PDFViewer pdfViewer = new PDFViewer(pdfPath, cardLayout, cardPanel);
             cardPanel.add(pdfViewer, "PDFViewer");
-            cardLayout.show(cardPanel, "PDFViewer"); // Switch to the PDF viewer panel
-
-        } catch (IOException e) {
-            // Handle errors when opening the PDF
+            cardLayout.show(cardPanel, "PDFViewer");
+        } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Error opening the PDF file: The file may be corrupted or inaccessible.", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }

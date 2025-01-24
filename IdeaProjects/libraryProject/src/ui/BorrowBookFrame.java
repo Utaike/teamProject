@@ -215,12 +215,8 @@ public class BorrowBookFrame extends JPanel implements TransactionListener {
         cardLayout.show(cardPanel, "Login");
         JOptionPane.showMessageDialog(this, "Logged out successfully!", "Logout", JOptionPane.INFORMATION_MESSAGE);
     }
-
     @Override
-    public void onBorrowSuccess(Transaction transaction) {
-        // Show success message
-        JOptionPane.showMessageDialog(this, "Borrowing request successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-
+    public void onAdminApproval(Transaction transaction) {
         // Get the borrowed book
         Book borrowedBook = bookController.getBooksByID(transaction.getBookId());
 
@@ -239,13 +235,9 @@ public class BorrowBookFrame extends JPanel implements TransactionListener {
         }
     }
     @Override
-    public void onBorrowFailure(String errorMessage) {
-        JOptionPane.showMessageDialog(this, errorMessage, "Error", JOptionPane.ERROR_MESSAGE);
-    }
-    @Override
     public void onReturnSuccess(Transaction transaction) {}
     @Override
     public void onReturnFailure(String errorMessage) {}
     @Override
-    public void onRejectSuccess(Transaction transaction) {}
+    public void onRejection(Transaction transaction) {}
 }

@@ -17,6 +17,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -180,7 +182,7 @@ public class AllBooks extends JPanel implements TransactionListener {
                 borrowBook(book);
                 break;
             case "Read":
-                openPDF(book.getLink());
+                openPDFOrURL(book.getLink());
                 break;
             default:
                 JOptionPane.showMessageDialog(this, "Action not available.", "Error", JOptionPane.ERROR_MESSAGE);
@@ -191,25 +193,57 @@ public class AllBooks extends JPanel implements TransactionListener {
     private void borrowBook(Book book) {
         BorrowBookUtil.borrowBook(book, user, transactionController, this, this);
     }
+    // Method to open a PDF file or URL
+    private void openPDFOrURL(String path) {
+        if (path == null || path.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "The path is empty or invalid.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
 
+        // Check if the path is a URL
+        if (isValidURL(path)) {
+            openURL(path); // Open the URL in the default browser
+        }
+        // Check if the path is a valid PDF file
+        else if (isValidPDF(path)) {
+            openPDF(path); // Open the PDF file
+        }
+        // If neither, show an error
+        else {
+            JOptionPane.showMessageDialog(this, "The path is neither a valid URL nor a valid PDF file.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    // Helper method to validate if a string is a valid URL
+    private boolean isValidURL(String path) {
+        try {
+            URI uri = new URI(path);
+            // Ensure the URI has a scheme (e.g., http, https, ftp)
+            return uri.getScheme() != null && (uri.getScheme().equalsIgnoreCase("http") || uri.getScheme().equalsIgnoreCase("https"));
+        } catch (URISyntaxException e) {
+            return false; // Not a valid URL
+        }
+    }
+    // Helper method to validate if a string is a valid PDF file path
+    private boolean isValidPDF(String path) {
+        // Ensure the path ends with .pdf and the file exists
+        return path.toLowerCase().endsWith(".pdf") && new File(path).exists();
+    }
+    // Method to open a URL in the default browser
+    private void openURL(String url) {
+        try {
+            Desktop.getDesktop().browse(new URI(url)); // Open the URL
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error opening the URL: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    // Method to open a PDF file
     private void openPDF(String pdfPath) {
-        if (pdfPath == null || pdfPath.trim().isEmpty()) {
-            showErrorDialog("The PDF file path is empty or invalid.");
-            return;
-        }
-
-        File pdfFile = new File(pdfPath);
-        if (!pdfFile.exists() || !pdfFile.isFile()) {
-            showErrorDialog("The PDF file does not exist or is invalid.");
-            return;
-        }
-
-        try (PDDocument document = PDDocument.load(pdfFile)) {
+        try {
             PDFViewer pdfViewer = new PDFViewer(pdfPath, cardLayout, cardPanel);
             cardPanel.add(pdfViewer, "PDFViewer");
             cardLayout.show(cardPanel, "PDFViewer");
-        } catch (IOException e) {
-            showErrorDialog("Error opening the PDF file: The file may be corrupted or inaccessible.");
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error opening the PDF file: The file may be corrupted or inaccessible.", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -245,22 +279,18 @@ public class AllBooks extends JPanel implements TransactionListener {
         cardLayout.show(cardPanel, "Login");
         JOptionPane.showMessageDialog(this, "Logged out successfully!", "Logout", JOptionPane.INFORMATION_MESSAGE);
     }
-
-    @Override
-    public void onBorrowSuccess(Transaction transaction) {
-        // Show success message
-        JOptionPane.showMessageDialog(this, "Borrowing request successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-        // Refresh the UI
-        updateBookListPanel();
-    }
-    @Override
-    public void onBorrowFailure(String errorMessage) {
-        JOptionPane.showMessageDialog(this, errorMessage, "Error", JOptionPane.ERROR_MESSAGE);
-    }
     @Override
     public void onReturnSuccess(Transaction transaction) {}
     @Override
     public void onReturnFailure(String errorMessage) {}
     @Override
-    public void onRejectSuccess(Transaction transaction) {}
+    public void onRejection(Transaction transaction) {}
+
+    @Override
+    public void onAdminApproval(Transaction transaction) {
+        // Show success message
+        JOptionPane.showMessageDialog(this, "Borrowing request successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+        // Refresh the UI
+        updateBookListPanel();
+    }
 }

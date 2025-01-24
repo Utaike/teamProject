@@ -10,8 +10,9 @@ import java.awt.*;
 
 public class Header extends JPanel {
     private final TransactionController transactionController;
-    private NotificationManager notificationManager;
+    private NotificationManager notificationManager; // Make it non-final to allow lazy initialization
     private final User user;
+    private boolean isNotificationManagerInitialized = false; // Flag to track initialization
 
     public Header(String title, User user, Runnable logoutAction) {
         this.transactionController = new TransactionController(); // Initialize the controller
@@ -74,25 +75,18 @@ public class Header extends JPanel {
     }
 
     private JPanel createRightSection(Runnable logoutAction) {
-        JPanel rightSection = new JPanel();
+        JPanel rightSection = new JPanel(new GridBagLayout());
         rightSection.setOpaque(false); // Transparent background
-        rightSection.setLayout(new BoxLayout(rightSection, BoxLayout.X_AXIS)); // Horizontal layout
         rightSection.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20)); // Padding
 
-        // Initialize the NotificationManager
-        notificationManager = new NotificationManager(transactionController, user);
+        // Initialize the NotificationManager only once
+        if (!isNotificationManagerInitialized) {
+            notificationManager = new NotificationManager(transactionController, user);
+            isNotificationManagerInitialized = true; // Mark as initialized
+        }
 
         // Get the notification icon
-        JComponent notificationIcon = (JComponent) notificationManager.getNotificationIcon();
-
-        // Center the notification icon vertically
-        notificationIcon.setAlignmentY(Component.CENTER_ALIGNMENT);
-
-        // Add the notification icon (before the logout button)
-        rightSection.add(notificationIcon);
-        // Add spacing between notification icon and logout button
-        rightSection.add(Box.createRigidArea(new Dimension(10, 0)));
-
+        JComponent notificationIcon = (JComponent) notificationManager.getNotificationIconPanel();
 
         // Logout button
         JButton logoutButton = createStyledButton.create("Log out", Color.RED);
@@ -101,7 +95,23 @@ public class Header extends JPanel {
         logoutButton.setBackground(new Color(180, 34, 34)); // Red button
         logoutButton.setFocusPainted(false);
         logoutButton.addActionListener(e -> logoutAction.run());
-        rightSection.add(logoutButton);
+
+        // GridBagConstraints for notification icon
+        GridBagConstraints gbcIcon = new GridBagConstraints();
+        gbcIcon.gridx = 0;
+        gbcIcon.gridy = 0;
+        gbcIcon.anchor = GridBagConstraints.CENTER; // Center the icon
+        gbcIcon.insets = new Insets(0, 0, 0, 10); // Add spacing to the right of the icon
+
+        // GridBagConstraints for logout button
+        GridBagConstraints gbcButton = new GridBagConstraints();
+        gbcButton.gridx = 1;
+        gbcButton.gridy = 0;
+        gbcButton.anchor = GridBagConstraints.CENTER; // Center the button
+
+        // Add components to the right section
+        rightSection.add(notificationIcon, gbcIcon);
+        rightSection.add(logoutButton, gbcButton);
 
         return rightSection;
     }

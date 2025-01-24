@@ -135,7 +135,8 @@ public class ReturnBook extends JPanel implements TransactionListener {
     private void populateTableModel(DefaultTableModel tableModel) {
         List<Transaction> transactions = transactionController.getTransactionsByUser(user.getEmail());
         for (Transaction transaction : transactions) {
-            if (!transaction.isReturned()) { // Only include non-returned transactions
+            // Exclude returned and rejected transactions
+            if (!transaction.isReturned() && !"REJECTED".equals(transaction.getStatus())) {
                 Object[] rowData = {
                         false, // Checkbox for selection
                         transaction.getId(),
@@ -149,7 +150,6 @@ public class ReturnBook extends JPanel implements TransactionListener {
             }
         }
     }
-
     /**
      * Customizes the appearance of the table.
      *
@@ -317,16 +317,6 @@ public class ReturnBook extends JPanel implements TransactionListener {
     private void showErrorDialog(String message) {
         JOptionPane.showMessageDialog(this, message, "Error", JOptionPane.ERROR_MESSAGE);
     }
-
-    /**
-     * Handles the result of a successful return operation.
-     *
-     * @param transaction The transaction that was successfully returned.
-     */
-    @Override
-    public void onBorrowSuccess(Transaction transaction) {}
-    @Override
-    public void onBorrowFailure(String errorMessage) {}
     @Override
     public void onReturnSuccess(Transaction transaction) {}
     @Override
@@ -334,7 +324,10 @@ public class ReturnBook extends JPanel implements TransactionListener {
         showErrorDialog(errorMessage); // Show the error message
     }
     @Override
-    public void onRejectSuccess(Transaction transaction) {}
+    public void onRejection(Transaction transaction) {}
+
+    @Override
+    public void onAdminApproval(Transaction transaction) {}
 
     /**
      * Retrieves the book title by book ID.

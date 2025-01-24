@@ -7,7 +7,6 @@ import models.User;
 import services.TransactionService;
 
 import java.time.LocalDate;
-import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -30,7 +29,6 @@ public class TransactionController {
      */
     public boolean createBorrowingRequest(Book book, User user, TransactionListener listener) {
         if (book == null || user == null || !book.isAvailable()) {
-            listener.onBorrowFailure("Invalid book or user, or the book is not available.");
             return false;
         }
 
@@ -48,11 +46,8 @@ public class TransactionController {
                     true, // isBorrow
                     "PENDING" // Status
             );
-            listener.onBorrowSuccess(transaction);
-        } else {
-            listener.onBorrowFailure("Failed to create borrowing request. Please try again."); // Notify the listener of failure
+            listener.onAdminApproval(transaction);
         }
-
         return success;
     }
 
@@ -72,15 +67,10 @@ public class TransactionController {
             if (transaction != null) {
                 // Update book availability
                 bookController.updateBookAvailability(transaction.getBookId(), false);
-                listener.onBorrowSuccess(transaction); // Notify the listener of success
             } else {
-                listener.onBorrowFailure("Failed to fetch approved transaction.");
                 return false;
             }
-        } else {
-            listener.onBorrowFailure("Failed to approve borrowing request. Please try again."); // Notify the listener of failure
         }
-
         return success;
     }
 
@@ -98,14 +88,11 @@ public class TransactionController {
             // Fetch the rejected transaction
             Transaction transaction = transactionService.getTransactionById(transactionId);
             if (transaction != null) {
-                listener.onRejectSuccess(transaction); // Notify the listener of success
+                listener.onRejection(transaction); // Notify the listener of success
             } else {
                 return false;
             }
-        } else {
-            listener.onBorrowFailure("Failed to reject borrowing request. Please try again."); // Notify the listener of failure
         }
-
         return success;
     }
 
@@ -202,5 +189,17 @@ public class TransactionController {
 
     public List<Transaction> getReturnedBooks() {
         return transactionService.getAllTransactions().stream().filter(transaction -> transaction.isReturned() == true).toList();
+    }
+
+    public boolean addTransaction(Transaction newTransaction) {
+        return transactionService.addTransaction(newTransaction);
+    }
+
+    public boolean updateTransaction(Transaction transaction) {
+        return transactionService.updateTransaction(transaction);
+    }
+
+    public boolean deleteTransaction(String transactionId) {
+        return transactionService.deleteTransaction(transactionId);
     }
 }

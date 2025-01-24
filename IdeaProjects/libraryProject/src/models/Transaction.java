@@ -49,4 +49,24 @@ public class Transaction {
     public void setStatus(String status) {this.status = status;}
     // Helper method to check if the book is returned
     public boolean isReturned() {return returnDate != null;}
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public void setUserEmail(String userEmail) {
+        this.userEmail = userEmail;
+    }
+
+    public void setBookId(String bookId) {
+        this.bookId = bookId;
+    }
+
+    public void setBorrowDate(LocalDate borrowDate) {
+        this.borrowDate = borrowDate;
+    }
+
+    public void setDueDate(LocalDate dueDate) {
+        this.dueDate = dueDate;
+    }
 }
