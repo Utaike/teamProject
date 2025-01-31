@@ -79,29 +79,33 @@ public class ManageTransactionPanel extends JPanel{
 
             List<Transaction> transactions = adminController.allTransactions();
             for (Transaction transaction : transactions) {
+                // Skip REJECTED transactions
+                if ("REJECTED".equalsIgnoreCase(transaction.getStatus())) {
+                    continue;
+                }
+
                 String title = adminController.getBookTitle(transaction.getBookId());
                 // Apply search filter
-                boolean matchesSearch = transaction.getId().toLowerCase().contains(query) ||
+                boolean matchesSearch = String.valueOf(transaction.getId()).toLowerCase().contains(query) ||
                         transaction.getUserEmail().toLowerCase().contains(query) ||
-                        transaction.getBookId().toLowerCase().contains(query) ||
+                        String.valueOf(transaction.getBookId()).toLowerCase().contains(query) ||
                         title.toLowerCase().contains(query);
 
                 // Apply transaction type filter
                 boolean matchesFilter = true;
-                if (selectedFilter.equals("Borrow")) {
+                if ("Borrow".equals(selectedFilter)) {
                     matchesFilter = transaction.isBorrowed(); // Show only borrow transactions
-                } else if (selectedFilter.equals("Return")) {
+                } else if ("Return".equals(selectedFilter)) {
                     matchesFilter = !transaction.isBorrowed(); // Show only return transactions
                 }
 
                 // Add the transaction to the table if it matches both filters
                 if (matchesSearch && matchesFilter) {
-                    String bookTitle = adminController.getBookTitle(transaction.getBookId()); // Get book title
                     tableModel.addRow(new Object[]{
                             transaction.getId(),
                             transaction.getUserEmail(),
                             transaction.getBookId(),
-                            bookTitle, // Include book title
+                            title, // Include book title
                             transaction.getBorrowDate(),
                             transaction.getDueDate(),
                             transaction.getReturnDate(),
@@ -113,6 +117,7 @@ public class ManageTransactionPanel extends JPanel{
             }
         });
     }
+
     private void refreshTransactionTable() {
         tableModel.setRowCount(0);
         for (Transaction transaction : adminController.allTransactions()) {
@@ -321,7 +326,17 @@ public class ManageTransactionPanel extends JPanel{
         }
 
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-            setText((value == null) ? "" : value.toString());
+            String text = value.toString();
+            setText(text);
+            if ("Edit".equals(text)) {
+                setBackground(new Color(70, 130, 180));  // Steel Blue
+                setForeground(Color.WHITE);
+            } else if ("Delete".equals(text)) {
+                setBackground(new Color(220, 20, 60));   // Crimson Red
+                setForeground(Color.WHITE);
+            }
+
+            setFont(new Font("SansSerif", Font.BOLD, 12));
             return this;
         }
     }
@@ -353,13 +368,11 @@ public class ManageTransactionPanel extends JPanel{
             return button;
         }
 
-
         @Override
         public Object getCellEditorValue() {
             if (isPushed) {
                 int selectedRow = transactionTable.convertRowIndexToModel(transactionTable.getEditingRow());
                 String transactionId = (String) tableModel.getValueAt(selectedRow, 0);
-
                 if (label.equals("Edit")) {
                     // Handle edit action
                     editTransaction(transactionId);

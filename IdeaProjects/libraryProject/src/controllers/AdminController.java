@@ -99,7 +99,9 @@ public class AdminController {
     public boolean updateBook(String originalISBN, Book updatedBook) {
         return adminService.updateBook(originalISBN, updatedBook);
     }
-
+    public List<Transaction> allBorrowedBooks(){
+        return adminService.getAllBorrowedBooks();
+    }
     public Book getBookById(String bookID) {
         return adminService.getBookById(bookID);
     }

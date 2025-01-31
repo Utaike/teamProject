@@ -45,8 +45,6 @@ public class AdminDashboard extends JPanel {
 //        this.adminMenuController = new AdminMenuController(this.user, adminController, cardLayout, cardPanel);
 
         setLayout(new BorderLayout());
-
-        // Add the header
         JPanel header =(new Header("Imagine Library", user, this::handleLogout));
 
         add(header, BorderLayout.NORTH);
@@ -57,8 +55,6 @@ public class AdminDashboard extends JPanel {
         innerCardPanel=new JPanel(innerCardLayout);
         add(innerCardPanel,BorderLayout.CENTER);
         initializeMainContentPanels();
-
-
 
     }
     private void initializeMainContentPanels() {
@@ -78,41 +74,78 @@ public class AdminDashboard extends JPanel {
         AdminMenuController adminMenuController = new AdminMenuController(
                 user,
                 adminController,
-                () -> innerCardLayout.show(innerCardPanel, "Home"), // Navigate to Home
+                () -> {
+                    innerCardLayout.show(innerCardPanel, "Home");
+                    refreshStatsCards(); // Force refresh when navigating to Home
+                },
                 () -> innerCardLayout.show(innerCardPanel, "ManageBooks"), // Navigate to Manage Books
                 () -> innerCardLayout.show(innerCardPanel, "ManageUsers"), // Navigate to Manage Users
                 () -> innerCardLayout.show(innerCardPanel, "ManageTransactions") // Navigate to Borrowed History
         );
-
-        // Add buttons to the sidebar
         String[] menuItems = {"Home", "View Profile", "Manage Books", "Manage Users", "Manage Transactions"};
-        Menu menu =new Menu(menuItems,adminMenuController::handleMenuButtonClick);
+        String[] iconPaths = {
+                "IdeaProjects/libraryProject/src/images/icons/home.png",       // Path to home icon
+                "IdeaProjects/libraryProject/src/images/icons/profile.png",    // Path to profile icon
+                "IdeaProjects/libraryProject/src/images/icons/avialableBooks.png",      // Path to books icon
+                "IdeaProjects/libraryProject/src/images/icons/users.png",      // Path to users icon
+                "IdeaProjects/libraryProject/src/images/icons/books.png" // Path to transactions icon
+        };
+        Menu menu =new Menu(menuItems,iconPaths,adminMenuController::handleMenuButtonClick);
         sideBar.add(menu);
         return sideBar;
+    }
+    public void refreshStatsCards() {
+        SwingUtilities.invokeLater(() -> {
+            // Remove the old Home panel
+            innerCardPanel.removeAll();
+
+            // Recreate and re-add all panels (including the new Home panel)
+            initializeMainContentPanels();
+
+            // Force the layout to update
+            innerCardPanel.revalidate();
+            innerCardPanel.repaint();
+        });
     }
 
 
     private void handleLogout() {
         cardLayout.show(cardPanel, "Login");
-        JOptionPane.showMessageDialog(this, "Logged out successfully!", "Logout", JOptionPane.INFORMATION_MESSAGE); // Show logout message
+
+        // Get the parent window and disable resizing
+        Window window = SwingUtilities.getWindowAncestor(this);
+        if (window instanceof JFrame) {
+            JFrame frame = (JFrame) window;
+
+            // Set the size of the JFrame to the desired dimensions for the login panel
+            frame.setSize(1000, 700); // Set this to your desired size for the login panel
+
+            // Make the JFrame non-resizable
+            frame.setResizable(false);
+
+            // Optionally, you can also center the frame
+            frame.setLocationRelativeTo(null);
+        }
+        JOptionPane.showMessageDialog(this, "Logged out successfully!", "Logout", JOptionPane.INFORMATION_MESSAGE);
     }
     private JPanel createBooksPanel(){
-        return new ManageBooksPanel(adminController);
+        return new ManageBooksPanel(adminController,this);
     }
     private JPanel createManageUsersPanel(){
-        return new ManageUsersPanel(adminController);
+
+        return new ManageUsersPanel(adminController,this);
     }
     private JPanel createManageTransactionPanel(){
         return new ManageTransactionPanel(adminController);
     }
 
     private JPanel createHomePanel() {
-        JPanel mainContent = new JPanel(new BorderLayout());
-        mainContent.setBorder(BorderFactory.createEmptyBorder(PADDING, PADDING, PADDING, PADDING));
-
+        JPanel homePale = new JPanel(new BorderLayout());
+        homePale.setBorder(BorderFactory.createEmptyBorder(PADDING, PADDING, PADDING, PADDING));
+        homePale.setName("Home");
         // Create a panel for the cards (top part)
         JPanel statsPanel = createStatsPanel();
-        mainContent.add(statsPanel, BorderLayout.NORTH);
+        homePale.add(statsPanel, BorderLayout.NORTH);
 
         // Create a tabbed pane to organize the graphs and borrowing requests
         JTabbedPane tabbedPane = new JTabbedPane();
@@ -150,12 +183,12 @@ public class AdminDashboard extends JPanel {
         tabbedPane.addTab("Borrowing Requests", borrowingRequestsPanel);
 
         // Add the tabbed pane to the center of the main content
-        mainContent.add(tabbedPane, BorderLayout.CENTER);
+        homePale.add(tabbedPane, BorderLayout.CENTER);
 
-        return mainContent;
+        return homePale;
     }
     private JPanel createStatsPanel() {
-        JPanel statsPanel = new JPanel(new GridLayout(2, 2, 10, 10));
+        JPanel statsPanel = new JPanel(new GridLayout(3, 2, 10, 10));
         statsPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
 
         // Fetch data from the AdminController
@@ -166,11 +199,11 @@ public class AdminDashboard extends JPanel {
         int totalBorrowedBooks = adminController.totalBorrowedBooks();
 
         // Create statistical cards
-        statsPanel.add(createStatCard("Total Users", String.valueOf(totalUsers), scaleIcon("src/images/icons/users.png", 50, 50), () -> showPanel("UserTable", createUserTablePanel())));
-        statsPanel.add(createStatCard("Total Books", String.valueOf(totalBooks), scaleIcon("src/images/icons/books.png", 50, 50), () -> showPanel("BookTable", createBookTablePanel())));
-        statsPanel.add(createStatCard("Total Genres", String.valueOf(totalGenre), scaleIcon("src/images/icons/books.png", 50, 50), () -> showPanel("GenreTable", createGenreTablePanel())));
-        statsPanel.add(createStatCard("Total Available Books", String.valueOf(totalAvailableBooks), scaleIcon("src/images/icons/avialableBooks.png", 50, 50), () -> showPanel("AvailableBookTable", createAvailableBooksTablePanel())));
-        statsPanel.add(createStatCard("Total Borrowed Books", String.valueOf(totalBorrowedBooks), scaleIcon("src/images/icons/avialableBooks.png", 50, 50), () -> showPanel("BorrowedBooksTable", createBorrowedTablePanel())));
+        statsPanel.add(createStatCard("Total Users", String.valueOf(totalUsers), scaleIcon("IdeaProjects/libraryProject/src/images/icons/users.png", 50, 50), () -> showPanel("UserTable", createUserTablePanel())));
+        statsPanel.add(createStatCard("Total Books", String.valueOf(totalBooks), scaleIcon("IdeaProjects/libraryProject/src/images/icons/books.png", 50, 50), () -> showPanel("BookTable", createBookTablePanel())));
+        statsPanel.add(createStatCard("Total Genres", String.valueOf(totalGenre), scaleIcon("IdeaProjects/libraryProject/src/images/icons/books.png", 50, 50), () -> showPanel("GenreTable", createGenreTablePanel())));
+        statsPanel.add(createStatCard("Total Available Books", String.valueOf(totalAvailableBooks), scaleIcon("IdeaProjects/libraryProject/src/images/icons/avialableBooks.png", 50, 50), () -> showPanel("AvailableBookTable", createAvailableBooksTablePanel())));
+        statsPanel.add(createStatCard("Total Borrowed Books", String.valueOf(totalBorrowedBooks), scaleIcon("IdeaProjects/libraryProject/src/images/icons/avialableBooks.png", 50, 50), () -> showPanel("BorrowedBooksTable", createBorrowedTablePanel())));
 
         return statsPanel;
     }
@@ -250,14 +283,15 @@ public class AdminDashboard extends JPanel {
         );
     }
     private JPanel createBorrowedTablePanel(){
-        List<Transaction> borrowedBooks=adminController.allTransactions();
+        List<Transaction> borrowedBooks=adminController.allBorrowedBooks();
         CreateTablePanel createTablePanel=new CreateTablePanel();
         String[] borrowedBooksColumns = {"ID","Email","Book's ID","BorrowDate","DueDate","ReturnDate","Status"};
+//        String bookTitle = adminController.getBookTitle(borrowedBooks.getBookId());
         return createTablePanel.createTablePanel(
                 "Borrowed Books",
                 borrowedBooks,
                 borrowedBooksColumns,
-                transaction -> new Object[]{transaction.getId(),transaction.getUserEmail(),transaction.getBookId(),transaction.getBorrowDate(),transaction.getDueDate(), transaction.getReturnDate(),transaction.isReturned()},
+                transaction -> new Object[]{transaction.getId(),transaction.getUserEmail(),transaction.getBookId(),transaction.getBorrowDate(),transaction.getDueDate(),transaction.getReturnDate(),transaction.isReturned()},
                 ()->innerCardLayout.show(innerCardPanel,"Home"),
                 ()->innerCardLayout.show(innerCardPanel,"Home")
                 );

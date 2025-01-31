@@ -55,7 +55,16 @@ public class ReturnBook extends JPanel implements TransactionListener {
         // Create the main content panel
         JPanel mainContent = new JPanel(new BorderLayout());
         String[] menuItems = {"Home", "View profile", "Borrow Book", "Return Book", "Borrowed books", "Back to previous", "New Arrivals"};
-        mainContent.add(new Menu(menuItems, menuController::handleMenuButtonClick), BorderLayout.WEST);
+        String[] iconPaths = {
+                "IdeaProjects/libraryProject/src/images/icons/home.png",       // Path to home icon
+                "IdeaProjects/libraryProject/src/images/icons/profile.png",    // Path to profile icon
+                "IdeaProjects/libraryProject/src/images/icons/avialableBooks.png",      // Path to books icon
+                "IdeaProjects/libraryProject/src/images/icons/users.png",      // Path to users icon
+                "IdeaProjects/libraryProject/src/images/icons/books.png", // Path to transactions icon
+                "IdeaProjects/libraryProject/src/images/icons/arrow.png",      // Path to users icon
+                "IdeaProjects/libraryProject/src/images/icons/settings.png"
+        };
+        mainContent.add(new Menu(menuItems, iconPaths,menuController::handleMenuButtonClick), BorderLayout.WEST);
 
         // Add the transaction table (with the return button) to the main content
         mainContent.add(createTransactionTablePanel(), BorderLayout.CENTER);

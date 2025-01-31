@@ -42,7 +42,16 @@ public class ViewTransactionHistory extends JPanel {
 
         // Define menu items and add the menu to the left side of the dashboard
         String[] menuItems = {"Home", "View profile", "Borrow Book", "Return Book", "Borrowed books", "Back to previous", "New Arrivals"};
-        mainContent.add(new Menu(menuItems, menuController::handleMenuButtonClick), BorderLayout.WEST);
+        String[] iconPaths = {
+                "IdeaProjects/libraryProject/src/images/icons/home.png",       // Path to home icon
+                "IdeaProjects/libraryProject/src/images/icons/profile.png",    // Path to profile icon
+                "IdeaProjects/libraryProject/src/images/icons/avialableBooks.png",      // Path to books icon
+                "IdeaProjects/libraryProject/src/images/icons/users.png",      // Path to users icon
+                "IdeaProjects/libraryProject/src/images/icons/books.png", // Path to transactions icon
+                "IdeaProjects/libraryProject/src/images/icons/arrow.png",      // Path to users icon
+                "IdeaProjects/libraryProject/src/images/icons/settings.png"
+        };
+        mainContent.add(new Menu(menuItems,iconPaths, menuController::handleMenuButtonClick), BorderLayout.WEST);
 
         // Add the main content (search bar and book list) to the center of the dashboard
         mainContent.add(createMainContent(), BorderLayout.CENTER);

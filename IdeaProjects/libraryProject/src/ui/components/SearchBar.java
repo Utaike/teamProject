@@ -103,7 +103,7 @@ public class SearchBar extends JPanel {
      */
     private JLabel createSearchIcon() {
         ImageIcon icon = ImageLoader.loadImageIcon(
-                "/images/icons/search_24dp_5F6368_FILL0_wght400_GRAD0_opsz24.png",
+                "/images/icons/search.png",
                 20,
                 20
         );

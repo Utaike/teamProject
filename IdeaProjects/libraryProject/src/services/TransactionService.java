@@ -369,4 +369,17 @@ public class TransactionService {
 
         return true;
     }
+    /**
+     * Get all borrowed books that have not yet been returned.
+     *
+     * @return A list of transactions where books are still borrowed.
+     */
+
+    public List<Transaction> getUnreturnedBorrowedBooks() {
+        return transactionList.stream()
+                .filter(t -> t.isBorrowed() && t.getReturnDate() == null && "APPROVED".equals(t.getStatus()))
+                .collect(Collectors.toList());
+    }
+
+
 }

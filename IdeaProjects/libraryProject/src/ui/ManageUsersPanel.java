@@ -18,11 +18,13 @@ import java.util.List;
 
 public class ManageUsersPanel extends JPanel {
     private final AdminController adminController;
+    private final AdminDashboard adminDashboard;
     private final DefaultTableModel tableModel;
     private final JTable userTable;
 
-    public ManageUsersPanel(AdminController adminController) {
+    public ManageUsersPanel(AdminController adminController,AdminDashboard adminDashboard) {
         this.adminController = adminController;
+        this.adminDashboard=adminDashboard;
 
         setLayout(new BorderLayout());
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -166,6 +168,7 @@ public class ManageUsersPanel extends JPanel {
             if (isAdded) {
                 JOptionPane.showMessageDialog(this, "User added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
                 refreshUserTable();
+                adminDashboard.refreshStatsCards();
             } else {
                 JOptionPane.showMessageDialog(this, "Failed to add user. Email may already exist.", "Error", JOptionPane.ERROR_MESSAGE);
             }
@@ -204,6 +207,7 @@ public class ManageUsersPanel extends JPanel {
             if (isUpdated) {
                 JOptionPane.showMessageDialog(this, "User updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
                 refreshUserTable();
+                adminDashboard.refreshStatsCards();
             } else {
                 JOptionPane.showMessageDialog(this, "Failed to update user.", "Error", JOptionPane.ERROR_MESSAGE);
             }
@@ -222,7 +226,10 @@ public class ManageUsersPanel extends JPanel {
 
             if (isDeleted) {
                 JOptionPane.showMessageDialog(this, "User deleted successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                adminDashboard.refreshStatsCards();
+                System.out.println("Total users after delete"+adminController.totalUsers());
                 refreshUserTable();
+
             } else {
                 JOptionPane.showMessageDialog(this, "Failed to delete user.", "Error", JOptionPane.ERROR_MESSAGE);
             }
@@ -236,7 +243,17 @@ public class ManageUsersPanel extends JPanel {
 
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-            setText(value == null ? "" : value.toString());
+            String text = value.toString();
+            setText(text);
+            if ("Edit".equals(text)) {
+                setBackground(new Color(70, 130, 180));  // Steel Blue
+                setForeground(Color.WHITE);
+            } else if ("Delete".equals(text)) {
+                setBackground(new Color(220, 20, 60));   // Crimson Red
+                setForeground(Color.WHITE);
+            }
+
+            setFont(new Font("SansSerif", Font.BOLD, 12));
             return this;
         }
     }
@@ -244,12 +261,25 @@ public class ManageUsersPanel extends JPanel {
     private class ButtonEditor extends AbstractCellEditor implements TableCellEditor {
         private final JButton button;
         private String action;
+        private Color originalFg;
+        private Color originalBg;
 
         public ButtonEditor(String action) {
             button = new JButton(action);
             this.action = action;
             button.setOpaque(true);
-
+            button.setBorderPainted(false);
+            button.setFocusPainted(false);
+            button.setFont(new Font("SansSerif", Font.BOLD, 12));
+            if ("Edit".equals(action)) {
+                button.setBackground(new Color(70, 130, 180));  // Steel Blue
+                button.setForeground(Color.WHITE);
+            } else if ("Delete".equals(action)) {
+                button.setBackground(new Color(220, 20, 60));   // Crimson Red
+                button.setForeground(Color.WHITE);
+            }
+            originalBg = button.getBackground();
+            originalFg = button.getForeground();
             // Button action listener
             button.addActionListener(e -> {
                 int row = userTable.getSelectedRow();
@@ -258,7 +288,6 @@ public class ManageUsersPanel extends JPanel {
                     JOptionPane.showMessageDialog(ManageUsersPanel.this, "Please select a user first.", "No Selection", JOptionPane.WARNING_MESSAGE);
                     return;
                 }
-
                 String email = (String) tableModel.getValueAt(row, 1); // Get email from row
                 if ("Edit".equals(action)) {
                     editUser(email);
@@ -268,7 +297,6 @@ public class ManageUsersPanel extends JPanel {
                 fireEditingStopped(); // Stop editing mode
             });
         }
-
         @Override
         public Object getCellEditorValue() {
             return action;

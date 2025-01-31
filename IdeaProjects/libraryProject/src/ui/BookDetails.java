@@ -51,7 +51,16 @@ public class BookDetails extends JPanel implements TransactionListener {
 
         JPanel mainContent = new JPanel(new BorderLayout());
         String[] menuItems = {"Home", "View profile", "Borrow Book", "Return Book", "Borrowed books", "Back to previous", "New Arrivals"};
-        mainContent.add(new Menu(menuItems, menuController::handleMenuButtonClick), BorderLayout.WEST);
+        String[] iconPaths = {
+                "IdeaProjects/libraryProject/src/images/icons/home.png",       // Path to home icon
+                "IdeaProjects/libraryProject/src/images/icons/profile.png",    // Path to profile icon
+                "IdeaProjects/libraryProject/src/images/icons/avialableBooks.png",      // Path to books icon
+                "IdeaProjects/libraryProject/src/images/icons/users.png",      // Path to users icon
+                "IdeaProjects/libraryProject/src/images/icons/books.png", // Path to transactions icon
+                "IdeaProjects/libraryProject/src/images/icons/arrow.png",      // Path to users icon
+                "IdeaProjects/libraryProject/src/images/icons/settings.png"
+        };
+        mainContent.add(new Menu(menuItems, iconPaths,menuController::handleMenuButtonClick), BorderLayout.WEST);
 
         mainContent.add(createMainContent(), BorderLayout.CENTER);
         add(mainContent, BorderLayout.CENTER);

@@ -1,9 +1,12 @@
 package ui;
 
 import controllers.AdminController;
-import models.Book;
-import utils.FileUtils;
-
+import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -11,22 +14,17 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
+import models.Book;
 
 public class ManageBooksPanel extends JPanel {
     private final AdminController adminController;
+    private final AdminDashboard adminDashboard;
     private final DefaultTableModel tableModel;
     private final JTable bookTable;
 
-    public ManageBooksPanel(AdminController adminController) {
+    public ManageBooksPanel(AdminController adminController,AdminDashboard adminDashboard) {
         this.adminController = adminController;
+        this.adminDashboard=adminDashboard;
         setLayout(new BorderLayout());
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
@@ -95,7 +93,9 @@ public class ManageBooksPanel extends JPanel {
     private void showAddBookForm() {
         JTextField titleField = new JTextField();
         JTextField authorField = new JTextField();
-        JTextField genreField = new JTextField();
+        JComboBox<String> genreComboBox = new JComboBox<>(new String[]{
+                "Self-Help", "Psychology", "Romance", "Career Development", "Work and Life Education", "Case Study"
+        });
         JTextField isbnField = new JTextField();
         JTextArea descriptionArea = new JTextArea(3, 20);
         JCheckBox availableCheckbox = new JCheckBox("Available");
@@ -103,8 +103,9 @@ public class ManageBooksPanel extends JPanel {
         // File Upload Components
         JLabel coverLabel = new JLabel("No cover selected");
         JButton chooseCoverButton = new JButton("Choose Cover");
-        JLabel pdfLabel = new JLabel("No PDF selected");
+        JLabel pdfLabel = new JLabel("No PDF selected or URL entered");
         JButton choosePDFButton = new JButton("Choose PDF");
+        JTextField pdfUrlField = new JTextField();
 
         JFileChooser imageChooser = new JFileChooser();
         imageChooser.setFileFilter(new FileNameExtensionFilter("Image files", "jpg", "jpeg", "png"));
@@ -126,6 +127,7 @@ public class ManageBooksPanel extends JPanel {
             if (pdfChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
                 selectedPDF[0] = pdfChooser.getSelectedFile();
                 pdfLabel.setText(selectedPDF[0].getName());
+                pdfUrlField.setText(""); // Clear URL field if file is chosen
             }
         });
 
@@ -136,7 +138,7 @@ public class ManageBooksPanel extends JPanel {
         fieldsPanel.add(new JLabel("Author:"));
         fieldsPanel.add(authorField);
         fieldsPanel.add(new JLabel("Genre:"));
-        fieldsPanel.add(genreField);
+        fieldsPanel.add(genreComboBox);
         fieldsPanel.add(new JLabel("ISBN:"));
         fieldsPanel.add(isbnField);
         fieldsPanel.add(new JLabel("Description:"));
@@ -144,13 +146,15 @@ public class ManageBooksPanel extends JPanel {
         fieldsPanel.add(new JLabel("Available:"));
         fieldsPanel.add(availableCheckbox);
 
-        JPanel filePanel = new JPanel(new GridLayout(2, 2, 5, 5));
+        JPanel filePanel = new JPanel(new GridLayout(3, 2, 5, 5));
         filePanel.add(new JLabel("Cover Image:"));
         filePanel.add(coverLabel);
         filePanel.add(chooseCoverButton);
         filePanel.add(new JLabel("PDF File:"));
         filePanel.add(pdfLabel);
         filePanel.add(choosePDFButton);
+        filePanel.add(new JLabel("PDF URL:"));
+        filePanel.add(pdfUrlField);
 
         formPanel.add(fieldsPanel, BorderLayout.NORTH);
         formPanel.add(filePanel, BorderLayout.CENTER);
@@ -161,18 +165,18 @@ public class ManageBooksPanel extends JPanel {
 
         if (result == JOptionPane.OK_OPTION) {
             if (titleField.getText().isEmpty() || authorField.getText().isEmpty() ||
-                    genreField.getText().isEmpty() || isbnField.getText().isEmpty()) {
+                    genreComboBox.getSelectedItem().toString().isEmpty() || isbnField.getText().isEmpty()) {
                 JOptionPane.showMessageDialog(this, "All fields are required!", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
             String coverPath = handleFileUpload(selectedCover[0]);
-            String pdfPath = handleFileUpload(selectedPDF[0]);
+            String pdfPath = selectedPDF[0] != null ? handleFileUpload(selectedPDF[0]) : pdfUrlField.getText();
 
             Book newBook = new Book(
                     isbnField.getText(),
                     titleField.getText(),
-                    genreField.getText(),
+                    (String) genreComboBox.getSelectedItem(),
                     authorField.getText(),
                     coverPath,
                     pdfPath,
@@ -183,6 +187,7 @@ public class ManageBooksPanel extends JPanel {
             if (adminController.addBook(newBook)) {
                 JOptionPane.showMessageDialog(this, "Book added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
                 refreshBookTable();
+                adminDashboard.refreshStatsCards();
             } else {
                 JOptionPane.showMessageDialog(this, "Failed to add book. ISBN might already exist.", "Error", JOptionPane.ERROR_MESSAGE);
             }
@@ -190,17 +195,16 @@ public class ManageBooksPanel extends JPanel {
         }
     }
 
-//    private String handleFileUpload(File file, String folder) {
-//        if (file == null) return "";
-//        String uniqueName = FileUtils.saveImage(file);
-//        return uniqueName != null ? "src/images/" + folder + "/" + uniqueName : "";
-//    }
-    // In ManageBooksPanel.java
-
     private String handleFileUpload(File sourceFile) {
         if (sourceFile == null) return "";
 
-        String targetDirPath = "src/images/books"; // Unified directory
+        String targetDirPath;
+        if (sourceFile.getName().endsWith(".pdf")) {
+            targetDirPath = "src/data/PDF"; // Directory for PDF files
+        } else {
+            targetDirPath = "src/images/books"; // Directory for image files
+        }
+
         File targetDir = new File(targetDirPath);
         if (!targetDir.exists()) targetDir.mkdirs();
 
@@ -213,7 +217,7 @@ public class ManageBooksPanel extends JPanel {
                     destFile.toPath(),
                     java.nio.file.StandardCopyOption.REPLACE_EXISTING
             );
-            return "images/books/" + fileName; // Path format you want
+            return targetDirPath + "/" + fileName; // Path format you want
         } catch (IOException e) {
             e.printStackTrace();
             return "";
@@ -365,7 +369,10 @@ public class ManageBooksPanel extends JPanel {
         // Create form components with existing values
         JTextField titleField = new JTextField(book.getTitle());
         JTextField authorField = new JTextField(book.getAuthor());
-        JTextField genreField = new JTextField(book.getGenre());
+        JComboBox<String> genreComboBox = new JComboBox<>(new String[]{
+                "Self-Help", "Psychology", "Romance", "Career Development", "Work and Life Education", "Case Study"
+        });
+        genreComboBox.setSelectedItem(book.getGenre());
         JTextField isbnField = new JTextField(book.getIsbn());
         JTextArea descriptionArea = new JTextArea(book.getDescription());
         JCheckBox availableCheckbox = new JCheckBox("Available", book.isAvailable());
@@ -373,6 +380,7 @@ public class ManageBooksPanel extends JPanel {
         // Initialize file components with existing paths
         JLabel coverLabel = new JLabel(book.getImgPath());
         JLabel pdfLabel = new JLabel(book.getLink());
+        JTextField pdfUrlField = new JTextField(book.getLink());
 
         // File chooser setup
         JFileChooser imageChooser = new JFileChooser();
@@ -395,6 +403,7 @@ public class ManageBooksPanel extends JPanel {
             if (pdfChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
                 selectedPDF[0] = pdfChooser.getSelectedFile();
                 pdfLabel.setText(selectedPDF[0].getName());
+                pdfUrlField.setText(""); // Clear URL field if file is chosen
             }
         });
 
@@ -407,7 +416,7 @@ public class ManageBooksPanel extends JPanel {
         fieldsPanel.add(new JLabel("Author:"));
         fieldsPanel.add(authorField);
         fieldsPanel.add(new JLabel("Genre:"));
-        fieldsPanel.add(genreField);
+        fieldsPanel.add(genreComboBox);
         fieldsPanel.add(new JLabel("ISBN:"));
         fieldsPanel.add(isbnField);
         fieldsPanel.add(new JLabel("Description:"));
@@ -415,13 +424,15 @@ public class ManageBooksPanel extends JPanel {
         fieldsPanel.add(new JLabel("Available:"));
         fieldsPanel.add(availableCheckbox);
 
-        JPanel filePanel = new JPanel(new GridLayout(2, 2, 5, 5));
+        JPanel filePanel = new JPanel(new GridLayout(3, 2, 5, 5));
         filePanel.add(new JLabel("Cover Image:"));
         filePanel.add(coverLabel);
         filePanel.add(chooseCoverButton);
         filePanel.add(new JLabel("PDF File:"));
         filePanel.add(pdfLabel);
         filePanel.add(choosePDFButton);
+        filePanel.add(new JLabel("PDF URL:"));
+        filePanel.add(pdfUrlField);
 
         formPanel.add(fieldsPanel, BorderLayout.NORTH);
         formPanel.add(filePanel, BorderLayout.CENTER);
@@ -437,7 +448,7 @@ public class ManageBooksPanel extends JPanel {
         if (result == JOptionPane.OK_OPTION) {
             // Handle file uploads
             String newCoverPath = handleFileUpload(selectedCover[0]);
-            String newPdfPath = handleFileUpload(selectedPDF[0]);
+            String newPdfPath = selectedPDF[0] != null ? handleFileUpload(selectedPDF[0]) : pdfUrlField.getText();
 
             // Preserve existing paths if no new files selected
             if (newCoverPath.isEmpty()) newCoverPath = book.getImgPath();
@@ -447,7 +458,7 @@ public class ManageBooksPanel extends JPanel {
             Book updatedBook = new Book(
                     isbnField.getText(),
                     titleField.getText(),
-                    genreField.getText(),
+                    (String) genreComboBox.getSelectedItem(),
                     authorField.getText(),
                     newCoverPath,
                     newPdfPath,
@@ -464,6 +475,7 @@ public class ManageBooksPanel extends JPanel {
                         JOptionPane.INFORMATION_MESSAGE
                 );
                 refreshBookTable();
+                adminDashboard.refreshStatsCards();
             } else {
                 JOptionPane.showMessageDialog(this,
                         "Update failed. ISBN might already exist.",
@@ -481,6 +493,7 @@ public class ManageBooksPanel extends JPanel {
         if (confirm == JOptionPane.YES_OPTION && adminController.deleteBook(isbn)) {
             JOptionPane.showMessageDialog(this, "Book deleted successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
             refreshBookTable();
+            adminDashboard.refreshStatsCards();
         }
     }
 }

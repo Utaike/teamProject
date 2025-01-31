@@ -10,7 +10,7 @@
     <orderEntry type="library" name="pdfbox-app-2.0.32" level="application" />
     <orderEntry type="library" name="pdfbox-2.0.33" level="project" />
     <orderEntry type="library" name="fontbox-2.0.33" level="project" />
+    <orderEntry type="library" name="jcommon-1.0.23" level="project" />
     <orderEntry type="library" name="jfreechart-1.5.3" level="project" />
-    <orderEntry type="library" name="jcommon-1.0.24" level="project" />
   </component>
 </module>

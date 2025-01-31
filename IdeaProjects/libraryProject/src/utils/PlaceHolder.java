@@ -6,11 +6,12 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 
 public class PlaceHolder {
+
+    // Method to add placeholder to JPasswordField with rounded corners and icon
     public static void addPasswordPlaceholder(JPasswordField field, String placeholder) {
         field.setText(placeholder);
         field.setForeground(Color.GRAY);
         field.setEchoChar((char) 0); // Makes the text visible like a placeholder
-
         field.addFocusListener(new FocusListener() {
             @Override
             public void focusGained(FocusEvent e) {
@@ -31,10 +32,11 @@ public class PlaceHolder {
             }
         });
     }
+
+    // Method to add placeholder to JTextField with rounded corners and icon
     public static void addPlaceholder(JTextField field, String placeholder) {
         field.setText(placeholder);
         field.setForeground(Color.GRAY);
-
         field.addFocusListener(new FocusListener() {
             @Override
             public void focusGained(FocusEvent e) {
@@ -55,4 +57,3 @@ public class PlaceHolder {
     }
 
 }
-

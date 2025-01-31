@@ -104,4 +104,7 @@ public class AdminService {
     public boolean updateBook(String originalISBN, Book updatedBook) {
         return bookService.updateBook(originalISBN,updatedBook);
     }
+    public List<Transaction> getAllBorrowedBooks(){
+        return transactionService.getUnreturnedBorrowedBooks();
+    }
 }

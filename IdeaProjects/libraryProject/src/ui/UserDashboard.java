@@ -50,7 +50,16 @@ public class UserDashboard extends JPanel {
 
         // Define menu items and add the menu to the left side of the dashboard
         String[] menuItems = {"Home", "View profile", "Borrow Book", "Return Book", "Borrowed books", "Back to previous", "New Arrivals"};
-        mainContent.add(new Menu(menuItems, menuController::handleMenuButtonClick), BorderLayout.WEST);
+        String[] iconPaths = {
+                "IdeaProjects/libraryProject/src/images/icons/home.png",       // Path to home icon
+                "IdeaProjects/libraryProject/src/images/icons/profile.png",    // Path to profile icon
+                "IdeaProjects/libraryProject/src/images/icons/avialableBooks.png",      // Path to books icon
+                "IdeaProjects/libraryProject/src/images/icons/users.png",      // Path to users icon
+                "IdeaProjects/libraryProject/src/images/icons/books.png", // Path to transactions icon
+                "IdeaProjects/libraryProject/src/images/icons/arrow.png",      // Path to users icon
+                "IdeaProjects/libraryProject/src/images/icons/settings.png"
+        };
+        mainContent.add(new Menu(menuItems, iconPaths,menuController::handleMenuButtonClick), BorderLayout.WEST);
 
         // Add the main content (search bar and book list) to the center of the dashboard
         mainContent.add(createMainContent(), BorderLayout.CENTER);
@@ -232,8 +241,23 @@ public class UserDashboard extends JPanel {
     }
     // Method to handle logout
     private void handleLogout() {
-        cardLayout.show(cardPanel, "Login"); // Switch to the login panel
-        JOptionPane.showMessageDialog(this, "Logged out successfully!", "Logout", JOptionPane.INFORMATION_MESSAGE); // Show logout message
+        cardLayout.show(cardPanel, "Login");
+
+        // Get the parent window and disable resizing
+        Window window = SwingUtilities.getWindowAncestor(this);
+        if (window instanceof JFrame) {
+            JFrame frame = (JFrame) window;
+
+            // Set the size of the JFrame to the desired dimensions for the login panel
+            frame.setSize(1000, 700); // Set this to your desired size for the login panel
+
+            // Make the JFrame non-resizable
+            frame.setResizable(false);
+
+            // Optionally, you can also center the frame
+            frame.setLocationRelativeTo(null);
+        }
+        JOptionPane.showMessageDialog(this, "Logged out successfully!", "Logout", JOptionPane.INFORMATION_MESSAGE);
     }
     // Method to open a PDF file or URL
     private void openPDFOrURL(String path) {

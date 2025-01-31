@@ -245,6 +245,12 @@ public class BookService {
         }
         return count;
     }
+    public List<Book> getAllBorrowedBooks() {
+        return bookList.stream()
+                .filter(book -> !book.isAvailable()) // Only books that are not available
+                .collect(Collectors.toList());
+    }
+
     public Book getBookByIsbn(String isbn) {
         return findBookByISBN(isbn); // Implement ISBN-based lookup
     }
